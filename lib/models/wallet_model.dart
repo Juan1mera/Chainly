@@ -1,4 +1,6 @@
 
+import 'package:flutter/widgets.dart';
+
 class Wallet {
   final int? id;
   final String name;
@@ -9,7 +11,7 @@ class Wallet {
   final bool isArchived;
   final String type; // 'bank' | 'cash'
   final DateTime createdAt;
-  final String? iconBank;
+  final IconData? iconBank;
 
   const Wallet({
     this.id,
@@ -35,7 +37,9 @@ class Wallet {
       isArchived: (map['is_archived'] as int) == 1,
       type: map['type'] as String,
       createdAt: DateTime.parse(map['created_at'] as String),
-      iconBank: map['icon_bank'] as String?,
+      iconBank: map['icon_bank'] != null
+          ? IconData(int.parse(map['icon_bank'] as String), fontFamily: 'MaterialIcons')
+          : null,
     );
   }
 
@@ -50,7 +54,7 @@ class Wallet {
       'is_archived': isArchived ? 1 : 0,
       'type': type,
       'created_at': createdAt.toIso8601String(),
-      'icon_bank': iconBank,
+      'icon_bank': iconBank?.codePoint, // Guardar como int
     };
   }
 
@@ -76,7 +80,7 @@ class Wallet {
       isArchived: isArchived ?? this.isArchived,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
-      iconBank: iconBank ?? this.iconBank,
+      iconBank: this.iconBank,
     );
   }
 
