@@ -1,5 +1,5 @@
-import 'package:wallet_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:wallet_app/core/constants/colors.dart';
 
 class CustomSelect<T> extends StatefulWidget {
   final String label;
@@ -7,10 +7,10 @@ class CustomSelect<T> extends StatefulWidget {
   final T? selectedItem;
   final String Function(T) getDisplayText;
   final Function(T?) onChanged;
-  final Color? color;         
+  final Color? color;
   final String? hintText;
-  final IconData? icon;       
-  final IconData Function(T? selectedItem)? dynamicIcon; 
+  final IconData? icon;
+  final IconData Function(T? selectedItem)? dynamicIcon;
 
   const CustomSelect({
     super.key,
@@ -18,11 +18,11 @@ class CustomSelect<T> extends StatefulWidget {
     required this.items,
     required this.getDisplayText,
     required this.onChanged,
-    this.color,               
+    this.color,
     this.selectedItem,
     this.hintText,
     this.icon,
-    this.dynamicIcon
+    this.dynamicIcon,
   });
 
   @override
@@ -36,7 +36,6 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
-  // Getter para obtener el color, usando el color por defecto si no se proporciona
   Color get _effectiveColor => widget.color ?? AppColors.verde;
 
   IconData? get _effectiveIcon {
@@ -53,14 +52,9 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.98,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -84,36 +78,29 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
   }
 
   void _openDropdown() {
-    setState(() {
-      _isOpen = true;
-    });
+    setState(() => _isOpen = true);
     _animationController.forward();
-    
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
   }
 
   void _closeDropdown() {
-    setState(() {
-      _isOpen = false;
-    });
+    setState(() => _isOpen = false);
     _animationController.reverse();
     _removeOverlay();
   }
 
   OverlayEntry _createOverlayEntry() {
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
     final offset = renderBox.localToGlobal(Offset.zero);
-
-    // Usar el color efectivo
-    final Color baseColor = _effectiveColor;
+    final baseColor = _effectiveColor;
 
     return OverlayEntry(
       builder: (context) => Positioned(
-        left: offset.dx + 16, // Ajuste para el padding horizontal
+        left: offset.dx + 16,
         top: offset.dy + size.height + 4,
-        width: size.width - 32, // Compensar padding horizontal
+        width: size.width - 32,
         child: Material(
           elevation: 8,
           borderRadius: BorderRadius.circular(12),
@@ -122,10 +109,7 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
             constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
               color: AppColors.fondoPrincipal,
-              border: Border.all(
-                color: baseColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
+              border: Border.all(color: baseColor.withValues(alpha: 0.3), width: 1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListView.builder(
@@ -135,26 +119,21 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
               itemBuilder: (context, index) {
                 final item = widget.items[index];
                 final isSelected = widget.selectedItem == item;
-                
+
                 return InkWell(
                   onTap: () {
-                    widget.onChanged(item);
+                    widget.onChanged(item); // Llama al padre
                     _closeDropdown();
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: isSelected 
-                        ? baseColor.withValues(alpha: 0.2)
-                        : null,
-                      borderRadius: index == 0 
-                        ? const BorderRadius.vertical(top: Radius.circular(10))
-                        : index == widget.items.length - 1
-                        ? const BorderRadius.vertical(bottom: Radius.circular(10))
-                        : null,
+                      color: isSelected ? baseColor.withValues(alpha: 0.2) : null,
+                      borderRadius: index == 0
+                          ? const BorderRadius.vertical(top: Radius.circular(10))
+                          : index == widget.items.length - 1
+                              ? const BorderRadius.vertical(bottom: Radius.circular(10))
+                              : null,
                     ),
                     child: Row(
                       children: [
@@ -162,22 +141,14 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
                           child: Text(
                             widget.getDisplayText(item),
                             style: TextStyle(
-                              color: isSelected 
-                                ? AppColors.verde
-                                : Colors.black87,
-                              fontWeight: isSelected 
-                                ? FontWeight.w600 
-                                : FontWeight.w500,
+                              color: isSelected ? AppColors.verde : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                               fontSize: 16,
                             ),
                           ),
                         ),
                         if (isSelected)
-                          Icon(
-                            Icons.check,
-                            color: baseColor,
-                            size: 20,
-                          ),
+                          Icon(Icons.check, color: baseColor, size: 20),
                       ],
                     ),
                   ),
@@ -192,11 +163,8 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
 
   @override
   Widget build(BuildContext context) {
-    const double fieldRadius = 12.0;
-
-    // Usar el color efectivo (con fallback a AppColors.verdeLight)
-    final Color baseColor = _effectiveColor;
-    final Color backgroundColor = baseColor.withValues(alpha: 0.2);
+    final baseColor = _effectiveColor;
+    final backgroundColor = baseColor.withValues(alpha: 0.2);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -210,11 +178,11 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
               child: Container(
                 decoration: BoxDecoration(
                   color: backgroundColor,
-                  borderRadius: BorderRadius.circular(fieldRadius),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: InkWell(
                   onTap: _toggleDropdown,
-                  borderRadius: BorderRadius.circular(fieldRadius),
+                  borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: EdgeInsets.only(
                       left: _effectiveIcon != null ? 8 : 16,
@@ -224,15 +192,10 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
                     ),
                     child: Row(
                       children: [
-                        // Icono opcional (igual que TextField)
                         if (_effectiveIcon != null)
                           Padding(
                             padding: const EdgeInsets.only(left: 12, right: 8),
-                            child: Icon(
-                              _effectiveIcon, // Cambiado aquí
-                              color: baseColor,
-                              size: 24,
-                            ),
+                            child: Icon(_effectiveIcon, color: baseColor, size: 24),
                           ),
                         Expanded(
                           child: Text(
@@ -240,24 +203,16 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
                                 ? widget.getDisplayText(widget.selectedItem as T)
                                 : widget.hintText ?? widget.label,
                             style: TextStyle(
-                              color: widget.selectedItem != null
-                                  ? AppColors.verde
-                                  : baseColor,
+                              color: widget.selectedItem != null ? AppColors.verde : baseColor,
                               fontSize: widget.selectedItem != null ? 16 : 14,
-                              fontWeight: widget.selectedItem != null 
-                                  ? FontWeight.w600 
-                                  : FontWeight.w500,
+                              fontWeight: widget.selectedItem != null ? FontWeight.w600 : FontWeight.w500,
                             ),
                           ),
                         ),
                         AnimatedRotation(
                           turns: _isOpen ? 0.5 : 0.0,
                           duration: const Duration(milliseconds: 200),
-                          child: Icon(
-                            Icons.keyboard_arrow_down,
-                            color: baseColor,
-                            size: 24,
-                          ),
+                          child: Icon(Icons.keyboard_arrow_down, color: baseColor, size: 24),
                         ),
                       ],
                     ),

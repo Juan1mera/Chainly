@@ -5,6 +5,8 @@ import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_modal.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
+import 'package:wallet_app/presentation/widgets/ui/custom_number_field.dart';
+import 'package:wallet_app/presentation/widgets/ui/custom_select.dart';
 import 'package:wallet_app/services/wallet_service.dart';
 
 class WalletsScreen extends StatefulWidget {
@@ -18,14 +20,26 @@ class _WalletsScreenState extends State<WalletsScreen> {
   final WalletService _walletService = WalletService();
   late Future<List<Wallet>> _walletsFuture;
 
+  // Form fields
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _currencyController = TextEditingController(text: 'USD');
-  final TextEditingController _initialBalanceController = TextEditingController(text: '0.0');
 
+  String _selectedCurrency = 'USD';
+  double _initialBalance = 0.0;
   String _selectedType = 'cash';
-  String _selectedColor = '#4CAF50'; // Verde por defecto
+  String _selectedColor = '#4CAF50';
   bool _isFavorite = false;
   bool _isLoading = false;
+
+  // Lista de monedas soportadas
+  final List<String> _currencies = [
+    'USD',
+    'EUR',
+    'GBP',
+    'MXN',
+    'BRL',
+    'JPY',
+    'INR',
+  ];
 
   @override
   void initState() {
@@ -34,13 +48,19 @@ class _WalletsScreenState extends State<WalletsScreen> {
   }
 
   void _loadWallets() {
-    _walletsFuture = _walletService.getWallets(includeArchived: true);
+    setState(() {
+      _walletsFuture = _walletService.getWallets(includeArchived: true);
+    });
   }
 
+  // -------------------------------------------------
+  // Modal de creación
+  // -------------------------------------------------
   Future<void> _showCreateWalletModal() async {
+    // Reset form
     _nameController.clear();
-    _currencyController.text = 'USD';
-    _initialBalanceController.text = '0.0';
+    _selectedCurrency = 'USD';
+    _initialBalance = 0.0;
     _selectedType = 'cash';
     _selectedColor = '#4CAF50';
     _isFavorite = false;
@@ -48,7 +68,80 @@ class _WalletsScreenState extends State<WalletsScreen> {
     showCustomModal(
       context: context,
       title: 'Nueva Cartera',
-      heightFactor: 0.85,
+      heightFactor: 0.9,
+      child: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+
+                // Nombre
+                CustomTextField(
+                  controller: _nameController,
+                  label: 'Nombre',
+                  hintText: 'Ej: Efectivo, Banco Santander',
+                  icon: Icons.wallet,
+                ),
+
+                // Moneda (Select) – con icono dinámico y color del tema
+                CustomSelect<String>(
+                  label: 'Moneda',
+                  items: _currencies,
+                  selectedItem: _selectedCurrency,
+                  getDisplayText: (c) => c,
+                  onChanged: (val) {
+                    setModalState(() {
+                      _selectedCurrency = val!;
+                    });
+                  },
+                  color: Color(int.parse(_selectedColor.replaceFirst('#', '0xFF'))),
+                  dynamicIcon: (selected) {
+                    final icons = {
+                      'USD': Icons.attach_money,
+                      'EUR': Icons.euro,
+                      'GBP': Icons.currency_pound,
+                      'MXN': Icons.money,
+                      'JPY': Icons.currency_yen,
+                      'INR': Icons.currency_rupee,
+                    };
+                    return icons[selected] ?? Icons.attach_money;
+                  },
+                ),
+
+                // Saldo inicial
+                CustomNumberField(
+                  currency: _selectedCurrency,
+                  hintText: '0.00',
+                  icon: Icons.account_balance_wallet,
+                  onChanged: (value) {
+                    setModalState(() {
+                      _initialBalance = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // Tipo de cartera
+                _buildTypeSelector(setModalState),
+
+                const SizedBox(height: 20),
+
+                // Selector de color
+                _buildColorSelector(setModalState),
+
+                const SizedBox(height: 16),
+
+                // Favorita
+                _buildFavoriteSwitch(setModalState),
+              ],
+            ),
+          );
+        },
+      ),
       actions: [
         CustomButton(
           text: 'Cancelar',
@@ -63,43 +156,13 @@ class _WalletsScreenState extends State<WalletsScreen> {
           isLoading: _isLoading,
         ),
       ],
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          const SizedBox(height: 16),
-          CustomTextField(
-            controller: _nameController,
-            label: 'Nombre',
-            hintText: 'Ej: Efectivo, Banco Santander',
-            icon: Icons.wallet,
-            onChanged: (_) => setState(() {}),
-          ),
-          CustomTextField(
-            controller: _currencyController,
-            label: 'Moneda',
-            hintText: 'USD, EUR, MXN',
-            icon: Icons.attach_money,
-          ),
-          CustomTextField(
-            controller: _initialBalanceController,
-            label: 'Saldo inicial',
-            hintText: '0.00',
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            icon: Icons.account_balance_wallet,
-          ),
-
-          const SizedBox(height: 20),
-          _buildTypeSelector(),
-          const SizedBox(height: 20),
-          _buildColorSelector(),
-          const SizedBox(height: 16),
-          _buildFavoriteSwitch(),
-        ],
-      ),
     );
   }
 
-  Widget _buildTypeSelector() {
+  // -------------------------------------------------
+  // Tipo de cartera (Radio)
+  // -------------------------------------------------
+  Widget _buildTypeSelector(StateSetter setModalState) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,20 +178,48 @@ class _WalletsScreenState extends State<WalletsScreen> {
           children: [
             Expanded(
               child: RadioListTile<String>(
-                title: const Text('Efectivo'),
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.payments,
+                      size: 20,
+                      color: _selectedType == 'cash' ? AppColors.verde : Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Efectivo'),
+                  ],
+                ),
                 value: 'cash',
                 groupValue: _selectedType,
-                onChanged: (val) => setState(() => _selectedType = val!),
+                onChanged: (val) {
+                  setModalState(() {
+                    _selectedType = val!;
+                  });
+                },
                 contentPadding: EdgeInsets.zero,
                 dense: true,
               ),
             ),
             Expanded(
               child: RadioListTile<String>(
-                title: const Text('Banco'),
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.account_balance,
+                      size: 20,
+                      color: _selectedType == 'bank' ? AppColors.verde : Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('Banco'),
+                  ],
+                ),
                 value: 'bank',
                 groupValue: _selectedType,
-                onChanged: (val) => setState(() => _selectedType = val!),
+                onChanged: (val) {
+                  setModalState(() {
+                    _selectedType = val!;
+                  });
+                },
                 contentPadding: EdgeInsets.zero,
                 dense: true,
               ),
@@ -139,10 +230,19 @@ class _WalletsScreenState extends State<WalletsScreen> {
     );
   }
 
-  Widget _buildColorSelector() {
+  // -------------------------------------------------
+  // Selector de color
+  // -------------------------------------------------
+  Widget _buildColorSelector(StateSetter setModalState) {
     final colors = [
-      '#4CAF50', '#2196F3', '#FF9800', '#F44336',
-      '#9C27B0', '#00BCD4', '#FFC107', '#795548',
+      '#4CAF50',
+      '#2196F3',
+      '#FF9800',
+      '#F44336',
+      '#9C27B0',
+      '#00BCD4',
+      '#FFC107',
+      '#795548',
     ];
 
     return Column(
@@ -156,45 +256,65 @@ class _WalletsScreenState extends State<WalletsScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: colors.map((color) {
-            final isSelected = _selectedColor == color;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedColor = color),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Color(int.parse(color.replaceFirst('#', '0xFF'))),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.white : Colors.transparent,
-                    width: 3,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: colors.map((color) {
+              final isSelected = _selectedColor == color;
+              return GestureDetector(
+                onTap: () {
+                  setModalState(() {
+                    _selectedColor = color;
+                  });
+                },
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(color.replaceFirst('#', '0xFF'))),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      width: 3,
+                    ),
+                    boxShadow: isSelected
+                        ? [BoxShadow(color: Colors.black26, blurRadius: 4, offset: const Offset(0, 2))]
+                        : null,
                   ),
-                  boxShadow: isSelected
-                      ? [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))]
+                  child: isSelected
+                      ? const Icon(Icons.check, color: Colors.white, size: 20)
                       : null,
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildFavoriteSwitch() {
+  // -------------------------------------------------
+  // Switch favorita
+  // -------------------------------------------------
+  Widget _buildFavoriteSwitch(StateSetter setModalState) {
     return SwitchListTile(
       title: const Text('Marcar como favorita'),
       value: _isFavorite,
-      onChanged: (val) => setState(() => _isFavorite = val),
+      onChanged: (val) {
+        setModalState(() {
+          _isFavorite = val;
+        });
+      },
       activeColor: AppColors.verde,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );
   }
 
+  // -------------------------------------------------
+  // Crear cartera
+  // -------------------------------------------------
   Future<void> _createWallet() async {
     if (_nameController.text.trim().isEmpty) return;
 
@@ -203,8 +323,8 @@ class _WalletsScreenState extends State<WalletsScreen> {
     final wallet = Wallet(
       name: _nameController.text.trim(),
       color: _selectedColor,
-      currency: _currencyController.text.trim().toUpperCase(),
-      balance: double.tryParse(_initialBalanceController.text) ?? 0.0,
+      currency: _selectedCurrency,
+      balance: _initialBalance,
       isFavorite: _isFavorite,
       isArchived: false,
       type: _selectedType,
@@ -216,7 +336,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
       await _walletService.createWallet(wallet);
       if (mounted) {
         Navigator.pop(context);
-        setState(() => _loadWallets());
+        _loadWallets();
       }
     } catch (e) {
       if (mounted) {
@@ -229,6 +349,9 @@ class _WalletsScreenState extends State<WalletsScreen> {
     }
   }
 
+  // -------------------------------------------------
+  // UI principal
+  // -------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -239,7 +362,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: RefreshIndicator(
-        onRefresh: () async => setState(() => _loadWallets()),
+        onRefresh: () async => _loadWallets(),
         child: FutureBuilder<List<Wallet>>(
           future: _walletsFuture,
           builder: (context, snapshot) {
@@ -272,6 +395,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
               itemBuilder: (context, index) {
                 final wallet = wallets[index];
                 final isArchived = wallet.isArchived;
+
                 return Opacity(
                   opacity: isArchived ? 0.6 : 1.0,
                   child: Card(
@@ -279,10 +403,12 @@ class _WalletsScreenState extends State<WalletsScreen> {
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Color(int.parse(wallet.color.replaceFirst('#', '0xFF'))),
-                        child: Text(
-                          wallet.name.isNotEmpty ? wallet.name[0].toUpperCase() : '?',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
+                        child: wallet.iconBank != null
+                            ? Icon(wallet.iconBank, color: Colors.white, size: 20)
+                            : Text(
+                                wallet.name.isNotEmpty ? wallet.name[0].toUpperCase() : '?',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
                       ),
                       title: Text(
                         wallet.name,
@@ -307,7 +433,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       onTap: isArchived
                           ? null
                           : () {
-                              // TODO: Navegar a detalle de wallet
+                              // TODO: Navegar a detalle
                             },
                     ),
                   ),
