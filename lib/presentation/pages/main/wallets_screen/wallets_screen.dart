@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/wallet_model.dart';
+import 'package:wallet_app/presentation/pages/extra/wallet_screen/wallet_screen.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_modal.dart';
@@ -355,7 +356,7 @@ class _WalletsScreenState extends State<WalletsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomHeader(title: 'Carteras'),
+      appBar: CustomHeader(title: 'Carteras', actions: [],),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.verde,
         onPressed: _showCreateWalletModal,
@@ -433,7 +434,12 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       onTap: isArchived
                           ? null
                           : () {
-                              // TODO: Navegar a detalle
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => WalletScreen(walletId: wallet.id!),
+                                ),
+                              );
                             },
                     ),
                   ),

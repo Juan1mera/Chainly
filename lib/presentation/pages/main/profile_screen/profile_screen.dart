@@ -93,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             await _authService.signOut();
           }
         },
-        iconOnPress: Icons.logout,
+        iconOnPress: Icons.logout, actions: [],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

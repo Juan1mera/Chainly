@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomHeader(title: 'Home'),
+      appBar: CustomHeader(title: 'Home', actions: [],),
       body: RefreshIndicator(
         onRefresh: () async {
           setState(() {});

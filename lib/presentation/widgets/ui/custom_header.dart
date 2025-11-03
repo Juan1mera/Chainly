@@ -11,7 +11,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.onPress,
-    this.iconOnPress,
+    this.iconOnPress, required List<IconButton> actions,
   });
 
   @override
