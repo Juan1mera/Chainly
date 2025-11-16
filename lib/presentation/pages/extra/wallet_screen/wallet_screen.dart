@@ -9,6 +9,8 @@ import 'package:wallet_app/presentation/pages/extra/wallet_screen/components/tra
 import 'package:wallet_app/presentation/pages/extra/wallet_screen/components/transaction_tabs.dart';
 import 'package:wallet_app/presentation/pages/extra/wallet_screen/components/wallet_card.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
+import 'package:wallet_app/services/category_service.dart';
+import 'package:wallet_app/services/transaction_service.dart';
 import 'package:wallet_app/services/wallet_service.dart';
 
 class WalletScreen extends StatefulWidget {
@@ -22,6 +24,8 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
   final WalletService _walletService = WalletService();
+  final TransactionService _transactionService = TransactionService();
+  final CategoryService _categoryService = CategoryService();
 
   Wallet? _wallet;
   List<Transaction> _transactions = [];
@@ -64,11 +68,11 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   }
 
   Future<void> _loadCategories() async {
-    _categories = await _walletService.getCategories();
+    _categories = await _categoryService.getCategories();
   }
 
   Future<void> _loadTransactions() async {
-    final transactions = await _walletService.getTransactionsByWallet(
+    final transactions = await _transactionService.getTransactionsByWallet(
       widget.walletId,
       type: _filterType == 'all' ? null : _filterType,
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wallet_app/models/transaction_model.dart';
 import 'package:wallet_app/models/wallet_model.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
+import 'package:wallet_app/services/transaction_service.dart';
 import 'package:wallet_app/services/wallet_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final WalletService _walletService = WalletService();
+  final TransactionService _transactionService = TransactionService();
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             FutureBuilder<List<Transaction>>(
-              future: _walletService.getAllTransactions().then((all) => all.take(10).toList()),
+              future: _transactionService.getAllTransactions().then((all) => all.take(10).toList()),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -120,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '${t.date.day}/${t.date.month}/${t.date.year} • ${t.currency}',
                         ),
                         trailing: Text(
-                          '$sign${t.amount.toStringAsFixed(2)}',
+                          '$sign${t.amount.toStringAsFixed(0)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: isExpense ? Colors.red : Colors.green,
