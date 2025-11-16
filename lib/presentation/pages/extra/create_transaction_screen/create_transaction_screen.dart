@@ -1,11 +1,11 @@
-// lib/presentation/pages/extra/create_transaction/create_transaction_screen.dart
 import 'package:flutter/material.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/category_model.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_number_field.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_select.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
-import 'package:wallet_app/services/wallet_service.dart';
+import 'package:wallet_app/services/category_service.dart';
+import 'package:wallet_app/services/transaction_service.dart';
 
 class CreateTransactionScreen extends StatefulWidget {
   final int walletId;
@@ -22,7 +22,8 @@ class CreateTransactionScreen extends StatefulWidget {
 }
 
 class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
-  final WalletService _walletService = WalletService();
+  final TransactionService _transactionService = TransactionService();
+  final CategoryService _categoryService = CategoryService();
   final TextEditingController _noteController = TextEditingController();
 
   List<Category> _categories = [];
@@ -39,7 +40,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
 
   Future<void> _loadCategories() async {
     try {
-      final cats = await _walletService.getCategories();
+      final cats = await _categoryService.getCategories();
       setState(() {
         _categories = cats;
         _selectedCategoryName = cats.isNotEmpty ? cats.first.name : null;
@@ -64,7 +65,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     }
 
     try {
-      await _walletService.createTransactionWithCategoryName(
+      await _transactionService.createTransactionWithCategoryName(
         walletId: widget.walletId,
         type: _type,
         amount: _amount,
