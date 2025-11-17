@@ -1,0 +1,51 @@
+// lib/main_drawer_nav.dart
+import 'package:flutter/material.dart';
+import 'package:wallet_app/presentation/pages/main/home_screen/components/header_home_section.dart';
+import 'package:wallet_app/presentation/pages/main/home_screen/home_screen.dart';
+import 'package:wallet_app/presentation/pages/main/wallets_screen/wallets_screen.dart';
+import 'package:wallet_app/presentation/pages/main/stats_screen/stats_screen.dart';
+import 'package:wallet_app/presentation/pages/main/profile_screen/profile_screen.dart';
+import 'package:wallet_app/presentation/widgets/navigation/app_drawer.dart';
+
+class MainDrawerNav extends StatefulWidget {
+  const MainDrawerNav({super.key});
+
+  @override
+  State<MainDrawerNav> createState() => _MainDrawerNavState();
+}
+
+class _MainDrawerNavState extends State<MainDrawerNav> {
+  int _selectedIndex = 0;
+
+  static const List<Widget> _screens = [
+    HomeScreen(),
+    WalletsScreen(),
+    StatsScreen(),
+    ProfileScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      drawer: AppDrawer(currentIndex: _selectedIndex, onItemTapped: _onItemTapped),
+      body: Stack(
+        children: [
+          // Pantalla actual
+          _screens[_selectedIndex],
+
+          // Header siempre visible encima
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: HeaderHomeSection(), 
+          ),
+        ],
+      ),
+    );
+  }
+}

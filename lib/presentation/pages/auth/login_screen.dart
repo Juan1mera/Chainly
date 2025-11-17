@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/presentation/pages/auth/register_screen.dart';
-import 'package:wallet_app/presentation/widgets/auth/main_bottom_nav.dart';
+import 'package:wallet_app/presentation/widgets/navigation/main_drawer_nav.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
 import 'package:wallet_app/services/auth_service.dart';
@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (session != null && mounted) {
           _redirecting = true;
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const MainBottomNav()),
+            MaterialPageRoute(builder: (_) => const MainDrawerNav()),
             (route) => false,
           );
         }

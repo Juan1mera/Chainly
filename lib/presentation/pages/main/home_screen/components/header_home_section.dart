@@ -40,7 +40,9 @@ class HeaderHomeSection extends StatelessWidget implements PreferredSizeWidget {
                   size: 38,
                   color: AppColors.black,
                 ),
-                onPressed: onMenuPress,
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();  
+                },
                 padding: const EdgeInsets.all(8),
               ),
 

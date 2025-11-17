@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wallet_app/presentation/widgets/auth/main_bottom_nav.dart';
+import 'package:wallet_app/presentation/widgets/navigation/main_drawer_nav.dart';
 import '../../pages/auth/welcome_screen.dart';
 
 class AuthGate extends StatelessWidget {
@@ -20,7 +20,7 @@ class AuthGate extends StatelessWidget {
         final session = snapshot.hasData ? snapshot.data!.session : null;
 
         if (session != null) {
-          return const MainBottomNav();
+          return const MainDrawerNav();
         } else {
           return const WelcomeScreen();
         }

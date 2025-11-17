@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.purple400),
         useMaterial3: true,
-        scaffoldBackgroundColor: Colors.transparent, // 👈 Añadido para hacer los Scaffold transparentes
+        scaffoldBackgroundColor: Colors.transparent,
       ),
       home: const SupabaseGate(),
       debugShowCheckedModeBanner: false,
