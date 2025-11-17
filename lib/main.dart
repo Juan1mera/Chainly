@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Wallet App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.purple400),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.purple),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.transparent,
       ),

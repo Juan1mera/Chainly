@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wallet_app/core/constants/colors.dart';
+import 'package:wallet_app/core/constants/fonts.dart';
 
 class CustomSelect<T> extends StatefulWidget {
   final String label;
@@ -36,7 +37,7 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
 
-  Color get _effectiveColor => widget.color ?? AppColors.verde;
+  Color get _effectiveColor => widget.color ?? AppColors.black;
 
   IconData? get _effectiveIcon {
     if (widget.dynamicIcon != null) {
@@ -104,11 +105,11 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
         child: Material(
           elevation: 8,
           borderRadius: BorderRadius.circular(12),
-          color: AppColors.fondoPrincipal,
+          color: AppColors.white,
           child: Container(
             constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
-              color: AppColors.fondoPrincipal,
+              color: AppColors.white,
               border: Border.all(color: baseColor.withValues(alpha: 0.3), width: 1),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -141,9 +142,10 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
                           child: Text(
                             widget.getDisplayText(item),
                             style: TextStyle(
-                              color: isSelected ? AppColors.verde : Colors.black87,
+                              color: isSelected ? AppColors.black : Colors.black87,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                               fontSize: 16,
+                              fontFamily: AppFonts.clashDisplay
                             ),
                           ),
                         ),
@@ -164,7 +166,6 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
   @override
   Widget build(BuildContext context) {
     final baseColor = _effectiveColor;
-    final backgroundColor = baseColor.withValues(alpha: 0.2);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -177,8 +178,8 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
               scale: _scaleAnimation.value,
               child: Container(
                 decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(36),
+                  border: Border.all(width: 2, color: AppColors.black)
                 ),
                 child: InkWell(
                   onTap: _toggleDropdown,
@@ -203,9 +204,10 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
                                 ? widget.getDisplayText(widget.selectedItem as T)
                                 : widget.hintText ?? widget.label,
                             style: TextStyle(
-                              color: widget.selectedItem != null ? AppColors.verde : baseColor,
+                              color: widget.selectedItem != null ? AppColors.black : baseColor,
                               fontSize: widget.selectedItem != null ? 16 : 14,
-                              fontWeight: widget.selectedItem != null ? FontWeight.w600 : FontWeight.w500,
+                              fontWeight: widget.selectedItem != null ? FontWeight.w500 : FontWeight.w400,
+                              fontFamily: AppFonts.clashDisplay
                             ),
                           ),
                         ),

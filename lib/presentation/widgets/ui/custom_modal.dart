@@ -1,5 +1,6 @@
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:wallet_app/core/constants/fonts.dart';
 
 class CustomModal extends StatelessWidget {
   final String title;
@@ -20,7 +21,7 @@ class CustomModal extends StatelessWidget {
     return Container(
       height: MediaQuery.of(context).size.height * heightFactor,
       decoration: const BoxDecoration(
-        color: AppColors.fondoPrincipal,
+        color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -31,7 +32,6 @@ class CustomModal extends StatelessWidget {
             width: 40,
             height: 5,
             decoration: BoxDecoration(
-              color: AppColors.fondoPrincipal,
               borderRadius: BorderRadius.circular(2.5),
             ),
           ),
@@ -42,8 +42,9 @@ class CustomModal extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.fondoSecundario,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+              fontFamily: AppFonts.clashDisplay
             ),
           ),
           const SizedBox(height: 16),
@@ -54,7 +55,7 @@ class CustomModal extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.fondoPrincipal,
+                color: AppColors.white,
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
               ),
               child: Row(

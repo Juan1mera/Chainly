@@ -104,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.fondoPrincipal,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 0),
@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'assets/Icon.svg',
                       fit: BoxFit.contain,
                       colorFilter: const ColorFilter.mode(
-                        AppColors.fondoSecundario,
+                        AppColors.black,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -137,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'assets/animals_login/dog.svg',
                       fit: BoxFit.contain,
                       colorFilter: const ColorFilter.mode(
-                        AppColors.fondoSecundario,
+                        AppColors.black,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -157,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontSize: 36,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Synonym',
-                        color: AppColors.fondoSecundario,
+                        color: AppColors.black,
                       ),
                     ),
                     const Text(
@@ -166,7 +166,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
                         fontFamily: 'Synonym',
-                        color: AppColors.fondoSecundario,
+                        color: AppColors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -175,7 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Chillax-Extralight',
-                        color: AppColors.fondoSecundario,
+                        color: AppColors.black,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -184,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Chillax-Extralight',
-                        color: AppColors.fondoSecundario,
+                        color: AppColors.black,
                       ),
                     ),
                   ],
@@ -200,7 +200,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         .map((err) => Text(
                               err,
                               style: const TextStyle(
-                                color: AppColors.rojo,
+                                color: AppColors.red,
                                 fontSize: 14,
                                 fontFamily: 'Chillax-Extralight',
                               ),
@@ -239,15 +239,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: CustomButton(
                   text: 'Regístrate',
                   onPressed: _isFormValid() ? _register : null,
-                  bgColor: AppColors.verdeLight,
-                  textColor: AppColors.fondoSecundario,
+                  bgColor: AppColors.purple,
+                  textColor: AppColors.black,
                   isLoading: _isLoading,
                 ),
               ),
 
               const SizedBox(height: 16),
               const Divider(
-                color: AppColors.fondoSecundario,
+                color: AppColors.black,
                 thickness: 2,
                 indent: 20,
                 endIndent: 20,
@@ -260,7 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: 'Chillax-Extralight',
-                    color: AppColors.fondoSecundario,
+                    color: AppColors.black,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -278,8 +278,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       MaterialPageRoute(builder: (context) => const LoginScreen()),
                     );
                   },
-                  bgColor: AppColors.fondoSecundario,
-                  textColor: AppColors.fondoPrincipal,
+                  bgColor: AppColors.black,
+                  textColor: AppColors.white,
                 ),
               ),
 
@@ -294,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'assets/animals_login/cow.svg',
                       fit: BoxFit.contain,
                       colorFilter: const ColorFilter.mode(
-                        AppColors.fondoSecundario,
+                        AppColors.black,
                         BlendMode.srcIn,
                       ),
                     ),
@@ -306,7 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       'assets/animals_login/cat.svg',
                       fit: BoxFit.contain,
                       colorFilter: const ColorFilter.mode(
-                        AppColors.fondoSecundario,
+                        AppColors.black,
                         BlendMode.srcIn,
                       ),
                     ),

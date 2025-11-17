@@ -103,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library, color: AppColors.verdeLight),
+                leading: const Icon(Icons.photo_library, color: AppColors.purple),
                 title: const Text('Cambiar foto de perfil'),
                 onTap: () {
                   Navigator.pop(context);
@@ -162,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Avatar principal
         CircleAvatar(
           radius: 60,
-          backgroundColor: AppColors.verdeLight,
+          backgroundColor: AppColors.purple,
           backgroundImage: _avatarUrl != null && _avatarUrl!.isNotEmpty
               ? NetworkImage(_avatarUrl!)
               : null,
@@ -201,7 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.verdeLight,
+                  color: AppColors.purple,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 3),
                   boxShadow: [
@@ -249,10 +249,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.verdeLight.withValues(alpha: .1),
+              color: AppColors.purple.withValues(alpha: .1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 20, color: AppColors.verdeLight),
+            child: Icon(icon, size: 20, color: AppColors.purple),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -413,7 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   await _authService.signOut();
                 }
               },
-              bgColor: AppColors.rojo,
+              bgColor: AppColors.red,
               textColor: Colors.white,
               leftIcon: const Icon(Icons.logout, color: Colors.white),
             ),

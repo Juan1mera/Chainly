@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wallet_app/core/constants/colors.dart';
+import 'package:wallet_app/core/constants/currencies.dart';
+import 'package:wallet_app/core/constants/fonts.dart';
 import 'package:wallet_app/models/wallet_model.dart';
+import 'package:wallet_app/presentation/pages/extra/wallet_screen/components/wallet_card.dart';
 import 'package:wallet_app/presentation/pages/extra/wallet_screen/wallet_screen.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_modal.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_number_field.dart';
@@ -21,28 +23,13 @@ class _WalletsScreenState extends State<WalletsScreen> {
   final WalletService _walletService = WalletService();
   late Future<List<Wallet>> _walletsFuture;
 
-  // Form fields
   final TextEditingController _nameController = TextEditingController();
-
   String _selectedCurrency = 'USD';
   double _initialBalance = 0.0;
   String _selectedType = 'cash';
-  String _selectedColor = '#4CAF50';
+  String _selectedColor = AppColors.walletColors[0];
   bool _isFavorite = false;
   bool _isLoading = false;
-
-  // Lista de monedas soportadas
-  final List<String> _currencies = [
-    'USD',
-    'COP',
-    'RUB',
-    'EUR',
-    'GBP',
-    'MXN',
-    'BRL',
-    'JPY',
-    'INR',
-  ];
 
   @override
   void initState() {
@@ -56,89 +43,51 @@ class _WalletsScreenState extends State<WalletsScreen> {
     });
   }
 
-  // -------------------------------------------------
-  // Modal de creación
-  // -------------------------------------------------
+  // ===EL MODAL Y CREACIÓN (sin cambios) ===
   Future<void> _showCreateWalletModal() async {
-    // Reset form
     _nameController.clear();
     _selectedCurrency = 'USD';
     _initialBalance = 0.0;
     _selectedType = 'cash';
-    _selectedColor = '#4CAF50';
+    _selectedColor = AppColors.walletColors[0];
     _isFavorite = false;
 
     showCustomModal(
       context: context,
-      title: 'Nueva Cartera',
+      title: 'Add Wallet',
       heightFactor: 0.9,
       child: StatefulBuilder(
-        builder: (BuildContext context, StateSetter setModalState) {
+        builder: (context, setModalState) {
           return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
-
-                // Nombre
                 CustomTextField(
                   controller: _nameController,
-                  label: 'Nombre',
-                  hintText: 'Ej: Efectivo, Banco Santander',
+                  hintText: 'Ej: Efectivo, Nubank, Ahorros',
                   icon: Icons.wallet,
                 ),
-
-                // Moneda (Select) – con icono dinámico y color del tema
+                const SizedBox(height: 20),
                 CustomSelect<String>(
                   label: 'Moneda',
-                  items: _currencies,
+                  items: Currencies.codes,
                   selectedItem: _selectedCurrency,
-                  getDisplayText: (c) => c,
-                  onChanged: (val) {
-                    setModalState(() {
-                      _selectedCurrency = val!;
-                    });
-                  },
-                  color: Color(int.parse(_selectedColor.replaceFirst('#', '0xFF'))),
-                  dynamicIcon: (selected) {
-                    final icons = {
-                      'USD': Icons.attach_money,
-                      'EUR': Icons.euro,
-                      'GBP': Icons.currency_pound,
-                      'MXN': Icons.money,
-                      'JPY': Icons.currency_yen,
-                      'INR': Icons.currency_rupee,
-                    };
-                    return icons[selected] ?? Icons.attach_money;
-                  },
+                  getDisplayText: (code) => code,
+                  onChanged: (val) => setModalState(() => _selectedCurrency = val!),
+                  dynamicIcon: (code) => Currencies.getIcon(code!),
                 ),
-
-                // Saldo inicial
+                const SizedBox(height: 20),
                 CustomNumberField(
                   currency: _selectedCurrency,
                   hintText: '0.00',
-                  onChanged: (value) {
-                    setModalState(() {
-                      _initialBalance = value;
-                    });
-                  },
+                  onChanged: (value) =>
+                      setModalState(() => _initialBalance = value),
                 ),
-
-                const SizedBox(height: 20),
-
-                // Tipo de cartera
+                const SizedBox(height: 24),
                 _buildTypeSelector(setModalState),
-
-                const SizedBox(height: 20),
-
-                // Selector de color
+                const SizedBox(height: 28),
                 _buildColorSelector(setModalState),
-
-                const SizedBox(height: 16),
-
-                // Favorita
-                _buildFavoriteSwitch(setModalState),
               ],
             ),
           );
@@ -153,301 +102,231 @@ class _WalletsScreenState extends State<WalletsScreen> {
         ),
         const SizedBox(width: 12),
         CustomButton(
-          text: 'Crear',
+          text: 'Crear Cartera',
           onPressed: _isLoading ? null : _createWallet,
           isLoading: _isLoading,
+          bgColor: AppColors.purple,
         ),
       ],
     );
   }
 
-  // -------------------------------------------------
-  // Tipo de cartera (Radio)
-  // -------------------------------------------------
-  Widget _buildTypeSelector(StateSetter setModalState) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Tipo de cartera',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.verde),
+  Widget _buildTypeSelector(StateSetter s) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25),
+      child: Row(
+        children: [
+          Expanded(child: _typeTile('cash', 'Efectivo', Icons.payments, s)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _typeTile('bank', 'Banco', Icons.account_balance, s),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _typeTile(String v, String l, IconData i, StateSetter s) {
+    final sel = _selectedType == v;
+    return GestureDetector(
+      onTap: () => s(() => _selectedType = v),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(36),
+          border: Border.all(
+            color: sel ? AppColors.black : Colors.transparent,
+            width: 2,
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: RadioListTile<String>(
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.payments,
-                      size: 20,
-                      color: _selectedType == 'cash' ? AppColors.verde : Colors.grey,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('Efectivo'),
-                  ],
-                ),
-                value: 'cash',
-                groupValue: _selectedType,
-                onChanged: (val) {
-                  setModalState(() {
-                    _selectedType = val!;
-                  });
-                },
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-              ),
-            ),
-            Expanded(
-              child: RadioListTile<String>(
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance,
-                      size: 20,
-                      color: _selectedType == 'bank' ? AppColors.verde : Colors.grey,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('Banco'),
-                  ],
-                ),
-                value: 'bank',
-                groupValue: _selectedType,
-                onChanged: (val) {
-                  setModalState(() {
-                    _selectedType = val!;
-                  });
-                },
-                contentPadding: EdgeInsets.zero,
-                dense: true,
+            Icon(i, color: sel ? AppColors.black : AppColors.greyDark),
+            const SizedBox(width: 8),
+            Text(
+              l,
+              style: TextStyle(
+                fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
+                fontFamily: AppFonts.clashDisplay
               ),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
-  // -------------------------------------------------
-  // Selector de color
-  // -------------------------------------------------
-  Widget _buildColorSelector(StateSetter setModalState) {
-    final colors = [
-      '#4CAF50',
-      '#2196F3',
-      '#FF9800',
-      '#F44336',
-      '#9C27B0',
-      '#00BCD4',
-      '#FFC107',
-      '#795548',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Color',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.verde),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: colors.map((color) {
-              final isSelected = _selectedColor == color;
-              return GestureDetector(
-                onTap: () {
-                  setModalState(() {
-                    _selectedColor = color;
-                  });
-                },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Color(int.parse(color.replaceFirst('#', '0xFF'))),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? Colors.white : Colors.transparent,
-                      width: 3,
-                    ),
-                    boxShadow: isSelected
-                        ? [BoxShadow(color: Colors.black26, blurRadius: 4, offset: const Offset(0, 2))]
-                        : null,
-                  ),
-                  child: isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 20)
-                      : null,
+  Widget _buildColorSelector(StateSetter s) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          children: AppColors.walletColors.map((c) {
+            final sel = _selectedColor == c;
+            return GestureDetector(
+              onTap: () => s(() => _selectedColor = c),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Color(int.parse(c.replaceFirst('#', '0xFF'))),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: sel ? 4 : 0),
                 ),
-              );
-            }).toList(),
-          ),
+                child: sel
+                    ? const Icon(Icons.check, color: Colors.white, size: 28)
+                    : null,
+              ),
+            );
+          }).toList(),
         ),
-      ],
+      ),
     );
   }
 
-  // -------------------------------------------------
-  // Switch favorita
-  // -------------------------------------------------
-  Widget _buildFavoriteSwitch(StateSetter setModalState) {
-    return SwitchListTile(
-      title: const Text('Marcar como favorita'),
-      value: _isFavorite,
-      onChanged: (val) {
-        setModalState(() {
-          _isFavorite = val;
-        });
-      },
-      activeColor: AppColors.verde,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    );
-  }
 
-  // -------------------------------------------------
-  // Crear cartera
-  // -------------------------------------------------
   Future<void> _createWallet() async {
-    if (_nameController.text.trim().isEmpty) return;
-
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor ingresa un nombre')),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
-
     final wallet = Wallet(
       name: _nameController.text.trim(),
-      color: _selectedColor,
       currency: _selectedCurrency,
       balance: _initialBalance,
+      color: _selectedColor,
+      type: _selectedType,
       isFavorite: _isFavorite,
       isArchived: false,
-      type: _selectedType,
-      createdAt: DateTime.now(),
       iconBank: _selectedType == 'bank' ? Icons.account_balance : null,
+      createdAt: DateTime.now(),
     );
-
     try {
       await _walletService.createWallet(wallet);
       if (mounted) {
         Navigator.pop(context);
         _loadWallets();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('¡Cartera creada!')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear cartera: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // -------------------------------------------------
-  // UI principal
-  // -------------------------------------------------
+  // ==================== BUILD (IGUAL QUE TU HOME) ====================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomHeader(title: 'Carteras', actions: [],),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.verde,
+        backgroundColor: AppColors.black,
         onPressed: _showCreateWalletModal,
-        child: const Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
       body: RefreshIndicator(
         onRefresh: () async => _loadWallets(),
-        child: FutureBuilder<List<Wallet>>(
-          future: _walletsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+        color: AppColors.purple,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 80, 16, 16),
+          children: [
+            const SizedBox(height: 50),
 
-            final wallets = snapshot.data ?? [];
-            if (wallets.isEmpty) {
-              return ListView(
-                children: const [
-                  SizedBox(height: 100),
-                  Center(
-                    child: Text(
-                      'No tienes carteras aún\nToca + para crear una',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                  ),
-                ],
-              );
-            }
+            // Estado vacío
+            FutureBuilder<List<Wallet>>(
+              future: _walletsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.purple),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: wallets.length,
-              itemBuilder: (context, index) {
-                final wallet = wallets[index];
-                final isArchived = wallet.isArchived;
+                final wallets = snapshot.data ?? [];
+                wallets.sort(
+                  (a, b) => b.isFavorite == a.isFavorite
+                      ? 0
+                      : b.isFavorite
+                      ? -1
+                      : 1,
+                );
 
-                return Opacity(
-                  opacity: isArchived ? 0.6 : 1.0,
-                  child: Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Color(int.parse(wallet.color.replaceFirst('#', '0xFF'))),
-                        child: wallet.iconBank != null
-                            ? Icon(wallet.iconBank, color: Colors.white, size: 20)
-                            : Text(
-                                wallet.name.isNotEmpty ? wallet.name[0].toUpperCase() : '?',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                              ),
-                      ),
-                      title: Text(
-                        wallet.name,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        '${wallet.type == 'bank' ? 'Banco' : 'Efectivo'} • ${wallet.currency}',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${wallet.balance.toStringAsFixed(2)} ${wallet.currency}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                if (wallets.isEmpty) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height - 250,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.wallet,
+                          size: 90,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'No tienes carteras aún',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
                           ),
-                          if (wallet.isFavorite)
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                        ],
-                      ),
-                      onTap: isArchived
-                          ? null
-                          : () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => WalletScreen(walletId: wallet.id!),
-                                ),
-                              );
-                            },
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Toca el botón + para crear tu primera cartera',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  );
+                }
+
+                return Column(
+                  children: wallets.map((wallet) {
+                    return Opacity(
+                      opacity: wallet.isArchived ? 0.5 : 1.0,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: GestureDetector(
+                          onTap: wallet.isArchived
+                              ? null
+                              : () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        WalletScreen(walletId: wallet.id!),
+                                  ),
+                                ),
+                          child: WalletCard(wallet: wallet),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
               },
-            );
-          },
+            ),
+
+            const SizedBox(height: 100),
+          ],
         ),
       ),
     );

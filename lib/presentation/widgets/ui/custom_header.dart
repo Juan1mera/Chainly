@@ -21,7 +21,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: AppColors.fondoSecundario,
+        color: AppColors.black,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
@@ -39,7 +39,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 icon: Icon(
                   iconOnPress ?? Icons.info_outline, // Usar directamente el IconData
                   size: 30,
-                  color: AppColors.fondoPrincipal,
+                  color: AppColors.white,
                 ),
                 onPressed: onPress,
               ),
@@ -50,7 +50,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
                     fontFamily: 'Chillax',
-                    color: AppColors.fondoPrincipal,
+                    color: AppColors.white,
                     textBaseline: TextBaseline.alphabetic,
                   ),
                   textAlign: TextAlign.center,
@@ -60,7 +60,7 @@ class CustomHeader extends StatelessWidget implements PreferredSizeWidget {
                 height: 50,
                 width: 50,
                 colorFilter: const ColorFilter.mode(
-                  AppColors.fondoPrincipal,
+                  AppColors.white,
                   BlendMode.srcIn,
                 ),
                 placeholderBuilder: (context) => const CircularProgressIndicator(),

@@ -23,19 +23,19 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color finalTextColor = textColor ?? AppColors.fondoSecundario;
+    final Color finalTextColor = textColor ?? AppColors.black;
     
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: bgColor ?? AppColors.verdeLight,
-        foregroundColor: textColor ?? AppColors.verdeLight,
+        backgroundColor: bgColor ?? AppColors.purple,
+        foregroundColor: textColor ?? AppColors.purple,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(36),
         ),
         elevation: 0,
-        disabledBackgroundColor: (bgColor ?? AppColors.verdeLight).withValues(alpha: 0.6),
+        disabledBackgroundColor: (bgColor ?? AppColors.purple).withValues(alpha: 0.6),
       ),
       child: isLoading
           ? SizedBox(

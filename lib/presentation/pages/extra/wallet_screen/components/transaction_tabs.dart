@@ -13,7 +13,7 @@ class TransactionTabs extends StatelessWidget {
       decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(12)),
       child: TabBar(
         controller: controller,
-        indicator: BoxDecoration(color: AppColors.verde, borderRadius: BorderRadius.circular(12)),
+        indicator: BoxDecoration(color: AppColors.purple, borderRadius: BorderRadius.circular(12)),
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey.shade600,
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),

@@ -24,7 +24,7 @@ class CustomImageSelector extends StatelessWidget {
   });
 
   Widget _buildImagePlaceholder() {
-    final color = accentColor ?? AppColors.verde;
+    final color = accentColor ?? AppColors.purple;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -38,14 +38,14 @@ class CustomImageSelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Center(
-        child: Icon(Icons.pets, size: 60, color: AppColors.fondoPrincipal),
+        child: Icon(Icons.pets, size: 60, color: AppColors.white),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = accentColor ?? AppColors.verdeLight;
+    final color = accentColor ?? AppColors.purple;
     final hasImage = imagePath != null && File(imagePath!).existsSync();
 
     return SizedBox(

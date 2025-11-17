@@ -1,5 +1,6 @@
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:wallet_app/core/constants/fonts.dart';
 
 class CustomTextField extends StatefulWidget {
   final String? label;
@@ -24,7 +25,7 @@ class CustomTextField extends StatefulWidget {
     this.hintText,
     this.controller,
     this.maxLines,
-    this.description, // Nuevo parámetro
+    this.description, 
   });
 
   @override
@@ -37,7 +38,7 @@ class CustomTextFieldState extends State<CustomTextField>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
-  Color get _effectiveColor => widget.color ?? AppColors.verde;
+  Color get _effectiveColor => widget.color ?? AppColors.black;
 
   @override
   void initState() {
@@ -67,9 +68,8 @@ class CustomTextFieldState extends State<CustomTextField>
 
   @override
   Widget build(BuildContext context) {
-    const double fieldRadius = 12.0;
+    const double fieldRadius = 36.0;
     final Color baseColor = _effectiveColor;
-    final Color backgroundColor = baseColor.withValues(alpha: 0.2);
     final bool isMultiline = widget.maxLines != null && widget.maxLines! > 1;
 
     return Padding(
@@ -84,8 +84,8 @@ class CustomTextFieldState extends State<CustomTextField>
               scale: _scaleAnimation.value,
               child: Container(
                 decoration: BoxDecoration(
-                  color: backgroundColor,
                   borderRadius: BorderRadius.circular(fieldRadius),
+                  border: Border.all(width: 2, color: AppColors.black)
                 ),
                 child: Focus(
                   onFocusChange: _onFocusChange,
@@ -96,9 +96,10 @@ class CustomTextFieldState extends State<CustomTextField>
                     maxLines: widget.obscureText ? 1 : widget.maxLines,
                     minLines: widget.maxLines ?? 1,
                     style: const TextStyle(
-                      color: AppColors.verde,
+                      color: AppColors.black,
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: AppFonts.clashDisplay
                     ),
                     decoration: InputDecoration(
                       hintText: widget.hintText ?? widget.label,

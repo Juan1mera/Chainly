@@ -18,8 +18,8 @@ class MiniButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.verdeLight,
-        foregroundColor: AppColors.fondoPrincipal,
+        backgroundColor: AppColors.purple,
+        foregroundColor: AppColors.black,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         minimumSize: const Size(90, 36),
         shape: RoundedRectangleBorder(
@@ -35,7 +35,7 @@ class MiniButton extends StatelessWidget {
           Text(
             text,
             style: const TextStyle(
-              color: AppColors.fondoSecundario,
+              color: AppColors.black,
               fontWeight: FontWeight.bold,
             ),
           ),

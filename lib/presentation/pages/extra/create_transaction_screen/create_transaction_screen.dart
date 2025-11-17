@@ -99,7 +99,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Nueva Transacción'),
-        backgroundColor: AppColors.verde,
+        backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,
         actions: [
           TextButton(
@@ -149,7 +149,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.only(left: 4, bottom: 8),
-          child: Text('Categoría', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.verde)),
+          child: Text('Categoría', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.purple)),
         ),
         CustomSelect<String>(
           label: '',
@@ -187,7 +187,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
               setState(() => _selectedCategoryName = val);
             }
           },
-          color: AppColors.verde,
+          color: AppColors.purple,
         ),
       ],
     );
@@ -199,7 +199,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       children: [
         const Padding(
           padding: EdgeInsets.only(left: 4, bottom: 8),
-          child: Text('Tipo', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.verde)),
+          child: Text('Tipo', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.purple)),
         ),
         Row(
           children: [

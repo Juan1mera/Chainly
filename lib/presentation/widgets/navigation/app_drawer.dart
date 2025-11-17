@@ -26,7 +26,7 @@ class AppDrawer extends StatelessWidget {
               child: Text(
                 'Wallet App',
                 style: TextStyle(
-                  color: AppColors.background4,
+                  color: AppColors.black,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),

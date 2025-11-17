@@ -111,7 +111,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.verde,
+        backgroundColor: AppColors.purple,
         onPressed: _goToCreateTransaction, // NAVEGA A LA NUEVA PANTALLA
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Nueva transacción', style: TextStyle(color: Colors.white)),

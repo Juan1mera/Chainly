@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wallet_app/core/constants/colors.dart';
+import 'package:wallet_app/core/constants/fonts.dart';
 
 class CustomNumberField extends StatefulWidget {
   final String currency;
@@ -98,8 +99,7 @@ class _CustomNumberFieldState extends State<CustomNumberField>
 
   @override
   Widget build(BuildContext context) {
-    final Color baseColor = AppColors.verde;
-    final Color backgroundColor = baseColor.withValues(alpha: 0.2);
+    final Color baseColor = AppColors.black;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -109,8 +109,8 @@ class _CustomNumberFieldState extends State<CustomNumberField>
           scale: _scaleAnimation.value,
           child: Container(
             decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(36),
+              border: Border.all(width: 2, color: AppColors.black)
             ),
             child: Focus(
               onFocusChange: _onFocusChange,
@@ -121,9 +121,10 @@ class _CustomNumberFieldState extends State<CustomNumberField>
                   FilteringTextInputFormatter.digitsOnly, // Solo dígitos
                 ],
                 style: const TextStyle(
-                  color: AppColors.verde,
+                  color: AppColors.black,
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: AppFonts.clashDisplay
                 ),
                 decoration: InputDecoration(
                   hintText: widget.hintText ?? '0',
@@ -137,9 +138,10 @@ class _CustomNumberFieldState extends State<CustomNumberField>
                     child: Text(
                       _getCurrencySymbol(widget.currency),
                       style: const TextStyle(
-                        color: AppColors.verde,
+                        color: AppColors.black,
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: AppFonts.clashDisplay
                       ),
                     ),
                   ),
