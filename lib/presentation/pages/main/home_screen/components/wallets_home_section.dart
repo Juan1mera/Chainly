@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:wallet_app/models/wallet_model.dart';
 
-class WalletsSection extends StatefulWidget {
+class WalletsHomeSection extends StatefulWidget {
   final List<Wallet> wallets;
 
-  const WalletsSection({
+  const WalletsHomeSection({
     super.key,
     required this.wallets,
   });
 
   @override
-  State<WalletsSection> createState() => _WalletsSectionState();
+  State<WalletsHomeSection> createState() => _WalletsHomeSectionState();
 }
 
-class _WalletsSectionState extends State<WalletsSection>
+class _WalletsHomeSectionState extends State<WalletsHomeSection>
     with SingleTickerProviderStateMixin {
   late List<Wallet> _displayWallets;
   Offset _dragOffset = Offset.zero;
