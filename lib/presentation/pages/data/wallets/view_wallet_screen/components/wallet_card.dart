@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/core/constants/fonts.dart';
 import 'package:wallet_app/core/utils/number_format.dart';
@@ -49,7 +50,7 @@ class WalletCard extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  wallet.type == 'bank' ? Icons.account_balance : Icons.wallet,
+                  wallet.type == 'bank' ? Bootstrap.credit_card : Bootstrap.cash_stack,
                   color: AppColors.white,
                   size: 28,
                 ),

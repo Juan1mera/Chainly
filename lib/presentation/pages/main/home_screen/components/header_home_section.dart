@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_app/presentation/pages/main/profile_screen/profile_screen.dart';
@@ -36,7 +37,7 @@ class HeaderHomeSection extends StatelessWidget implements PreferredSizeWidget {
               // === BOTÓN DE MENÚ (IZQUIERDA) ===
               IconButton(
                 icon: const Icon(
-                  Icons.menu_rounded,
+                  Bootstrap.filter_left,
                   size: 38,
                   color: AppColors.black,
                 ),
@@ -67,7 +68,7 @@ class HeaderHomeSection extends StatelessWidget implements PreferredSizeWidget {
                             children: [
                               Center(
                                 child: Icon(
-                                  Icons.notifications_rounded,
+                                  Bootstrap.bell,
                                   color: AppColors.black,
                                   size: 24,
                                 ),

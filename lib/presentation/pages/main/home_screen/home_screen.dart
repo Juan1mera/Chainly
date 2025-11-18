@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:icons_plus/icons_plus.dart'; 
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/category_model.dart';
 import 'package:wallet_app/models/transaction_with_details.dart';
@@ -51,7 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Text('Latest account activity', style: TextStyle(fontSize: 16, fontFamily: 'ClashDisplay', fontWeight: FontWeight.w300)),
                 ],
               ),
-              Icon(Icons.arrow_outward_rounded, size: 35, color: AppColors.black),
+              Icon(Bootstrap.arrow_up_right, size: 35, color: AppColors.black),
             ],
           ),
           const SizedBox(height: 12),

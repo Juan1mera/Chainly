@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/category_model.dart';
 import 'package:wallet_app/models/wallet_model.dart';
@@ -287,7 +288,7 @@ class _CreateTransactionScreenState
       children: [
         CustomButton(
           text: 'Income',
-          rightIcon: Icon(Icons.call_received_rounded),
+          rightIcon: Icon(Bootstrap.arrow_down_left),
           onPressed: () {
             setState(() => _type = 'income');
           },
@@ -297,7 +298,7 @@ class _CreateTransactionScreenState
         ),
         CustomButton(
           text: 'Expense',
-          rightIcon: Icon(Icons.call_made_rounded),
+          rightIcon: Icon(Bootstrap.arrow_up_right,),
           onPressed: () {
             setState(() => _type = 'expense');
           },
