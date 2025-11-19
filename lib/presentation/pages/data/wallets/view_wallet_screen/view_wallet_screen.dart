@@ -4,7 +4,6 @@ import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/wallet_model.dart';
 import 'package:wallet_app/models/transaction_model.dart';
 import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_screen/create_transaction_screen.dart';
 import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/transaction_list_section.dart';
 import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_options_section.dart';
 import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_section.dart';
@@ -66,26 +65,6 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen> {
     );
     if (mounted) {
       setState(() => _transactions = transactions);
-    }
-  }
-
-  void _goToCreateTransaction({required String type}) async {
-    if (_wallet == null) return;
-
-    final result = await Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => CreateTransactionScreen(
-          initialWalletId: _wallet!.id!,
-          initialType: type,
-        ),
-        transitionsBuilder: (_, animation, __, child) =>
-            FadeTransition(opacity: animation, child: child),
-      ),
-    );
-
-    if (result == true && mounted) {
-      await _loadData();
     }
   }
 
@@ -201,57 +180,50 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen> {
                 child: CircularProgressIndicator(color: Colors.white),
               )
             : _wallet == null
-            ? const Center(
-                child: Text(
-                  'Cartera no encontrada',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: _loadData,
-                color: AppColors.purple,
-                child: CustomScrollView(
-                  slivers: [
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: kToolbarHeight + 60),
+                ? const Center(
+                    child: Text(
+                      'Cartera no encontrada',
+                      style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
-
-                    SliverToBoxAdapter(
-                      child: _AnimatedSection(
-                        delay: 100,
-                        child: WalletSection(wallet: _wallet!),
-                      ),
-                    ),
-
-                    SliverToBoxAdapter(
-                      child: _AnimatedSection(
-                        delay: 250,
-                        child: WalletOptionsSection(
-                          wallet: _wallet!,
-                          currentFilter: _filterType,
-                          onCreateTransaction: _goToCreateTransaction,
-                          onFilterChanged: (filter) {
-                            setState(() => _filterType = filter);
-                            _loadTransactions();
-                          },
-                          onRefreshNeeded: _loadData, // ← Aquí le dices que recargue todo
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadData,
+                    color: AppColors.purple,
+                    child: CustomScrollView(
+                      slivers: [
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: kToolbarHeight + 60),
                         ),
-                      ),
+                        SliverToBoxAdapter(
+                          child: _AnimatedSection(
+                            delay: 100,
+                            child: WalletSection(wallet: _wallet!),
+                          ),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _AnimatedSection(
+                            delay: 250,
+                            child: WalletOptionsSection(
+                              wallet: _wallet!,
+                              currentFilter: _filterType,
+                              onFilterChanged: (filter) {
+                                setState(() => _filterType = filter);
+                                _loadTransactions();
+                              },
+                              onRefreshNeeded: _loadData,
+                            ),
+                          ),
+                        ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                        TransactionListSection(
+                          transactions: _transactions,
+                          categories: _categories,
+                          currency: _wallet!.currency,
+                        ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                      ],
                     ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-                    // LISTA DE TRANSACCIONES
-                    TransactionListSection(
-                      transactions: _transactions,
-                      categories: _categories,
-                      currency: _wallet!.currency,
-                    ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                  ],
-                ),
-              ),
+                  ),
       ),
     );
   }

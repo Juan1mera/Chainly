@@ -1,28 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/wallet_model.dart';
+import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_screen/create_transaction_screen.dart';
 import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_convert_screen/create_transaction_convert_screen.dart';
 import 'package:wallet_app/presentation/widgets/common/circle_bottom.dart';
 
-class WalletOptionsSection extends StatelessWidget {
+class WalletOptionsSection extends ConsumerWidget {
   final Wallet wallet;
   final String currentFilter;
-  final Function({required String type}) onCreateTransaction;
   final ValueChanged<String> onFilterChanged;
-  final VoidCallback onRefreshNeeded; 
+  final VoidCallback onRefreshNeeded;
 
   const WalletOptionsSection({
     super.key,
     required this.wallet,
     required this.currentFilter,
-    required this.onCreateTransaction,
     required this.onFilterChanged,
     required this.onRefreshNeeded,
   });
 
+  void _goToCreateTransaction(BuildContext context, {required String type}) async {
+    final result = await Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => CreateTransactionScreen(
+          initialWalletId: wallet.id,
+          initialType: type,
+        ),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+
+    if (result == true && context.mounted) {
+      onRefreshNeeded();
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final Map<String, String> filterLabels = {
       'all': 'All',
       'income': 'Incomes',
@@ -39,12 +57,12 @@ class WalletOptionsSection extends StatelessWidget {
             CircleBottom(
               text: 'Income',
               icon: const Icon(Bootstrap.arrow_down_left, size: 28),
-              onPressed: () => onCreateTransaction(type: 'income'),
+              onPressed: () => _goToCreateTransaction(context, type: 'income'),
             ),
             CircleBottom(
               text: 'Expense',
               icon: const Icon(Bootstrap.arrow_up_right, size: 28),
-              onPressed: () => onCreateTransaction(type: 'expense'),
+              onPressed: () => _goToCreateTransaction(context, type: 'expense'),
             ),
             CircleBottom(
               text: 'Convert',
@@ -59,7 +77,7 @@ class WalletOptionsSection extends StatelessWidget {
                   ),
                 );
 
-                if (result == true) {
+                if (result == true && context.mounted) {
                   onRefreshNeeded();
                 }
               },
