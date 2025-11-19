@@ -170,122 +170,130 @@ class _CreateTransactionConvertScreenState
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const CustomHeader(),
-
-                const SizedBox(height: 20),
-
-                // Desde
-                CustomSelect<Wallet>(
-                  label: "Desde",
-                  items: activeWallets,
-                  selectedItem: _fromWallet,
-                  getDisplayText: (w) =>
-                      '${w.name} • ${w.currency} • ${w.balance.toStringAsFixed(2)}',
-                  onChanged: (wallet) {
-                    setState(() {
-                      _fromWallet = wallet;
-                      _toWallet = null;
-                      _convertedAmount = 0;
-                    });
-                  },
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppColors.green, AppColors.yellow],
                 ),
-
-                const SizedBox(height: 20),
-                if (_fromWallet != null) ...[
-                  WalletCard(wallet: _fromWallet!),
+              ),
+              child: Column(
+                children: [
+                  const CustomHeader(),
+              
                   const SizedBox(height: 20),
-                ],
-
-                CustomNumberField(
-                  currency: _fromWallet?.currency ?? 'USD',
-                  hintText: '0.00',
-                  onChanged: (val) {
-                    setState(() => _amount = val);
-                    _convertAndShow();
-                  },
-                ),
-
-                const SizedBox(height: 30),
-                Icon(Icons.swap_vert, size: 48, color: AppColors.purple),
-                const SizedBox(height: 30),
-
-                // Hacia
-                CustomSelect<Wallet>(
-                  label: "Hacia",
-                  items: activeWallets.where((w) => w.id != _fromWallet?.id).toList(),
-                  selectedItem: _toWallet,
-                  getDisplayText: (w) => '${w.name} • ${w.currency}',
-                  onChanged: (wallet) {
-                    setState(() {
-                      _toWallet = wallet;
-                      _convertAndShow();
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 20),
-                if (_toWallet != null) ...[
-                  WalletCard(wallet: _toWallet!),
-                  const SizedBox(height: 20),
-                ],
-
-                // Resultado de conversión
-                if (_fromWallet != null && _toWallet != null && _amount > 0) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.purple.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_isConverting)
-                          const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        else ...[
-                          Text(
-                            '${_amount.toStringAsFixed(2)} ${_fromWallet!.currency}',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const Icon(Icons.arrow_forward, size: 20),
-                          Text(
-                            '${_convertedAmount.toStringAsFixed(2)} ${_toWallet!.currency}',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ],
-                    ),
+              
+                  // Desde
+                  CustomSelect<Wallet>(
+                    label: "Desde",
+                    items: activeWallets,
+                    selectedItem: _fromWallet,
+                    getDisplayText: (w) =>
+                        '${w.name} • ${w.currency} • ${w.balance.toStringAsFixed(2)}',
+                    onChanged: (wallet) {
+                      setState(() {
+                        _fromWallet = wallet;
+                        _toWallet = null;
+                        _convertedAmount = 0;
+                      });
+                    },
                   ),
+              
                   const SizedBox(height: 20),
+                  if (_fromWallet != null) ...[
+                    WalletCard(wallet: _fromWallet!),
+                    const SizedBox(height: 20),
+                  ],
+              
+                  CustomNumberField(
+                    currency: _fromWallet?.currency ?? 'USD',
+                    hintText: '0.00',
+                    onChanged: (val) {
+                      setState(() => _amount = val);
+                      _convertAndShow();
+                    },
+                  ),
+              
+                  const SizedBox(height: 30),
+                  Icon(Icons.swap_vert, size: 48, color: AppColors.purple),
+                  const SizedBox(height: 30),
+              
+                  // Hacia
+                  CustomSelect<Wallet>(
+                    label: "Hacia",
+                    items: activeWallets.where((w) => w.id != _fromWallet?.id).toList(),
+                    selectedItem: _toWallet,
+                    getDisplayText: (w) => '${w.name} • ${w.currency}',
+                    onChanged: (wallet) {
+                      setState(() {
+                        _toWallet = wallet;
+                        _convertAndShow();
+                      });
+                    },
+                  ),
+              
+                  const SizedBox(height: 20),
+                  if (_toWallet != null) ...[
+                    WalletCard(wallet: _toWallet!),
+                    const SizedBox(height: 20),
+                  ],
+              
+                  // Resultado de conversión
+                  if (_fromWallet != null && _toWallet != null && _amount > 0) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withValues(alpha: .1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_isConverting)
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else ...[
+                            Text(
+                              '${_amount.toStringAsFixed(2)} ${_fromWallet!.currency}',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const Icon(Icons.arrow_forward, size: 20),
+                            Text(
+                              '${_convertedAmount.toStringAsFixed(2)} ${_toWallet!.currency}',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+              
+                  CustomTextField(
+                    controller: _noteController,
+                    label: "Nota (opcional)",
+                    hintText: "Ej: Pago a amigo, viaje...",
+                  ),
+              
+                  const SizedBox(height: 30),
+              
+                  CustomButton(
+                    text: "Transferir",
+                    onPressed: (_fromWallet == null ||
+                            _toWallet == null ||
+                            _amount <= 0 ||
+                            _isConverting)
+                        ? null
+                        : _makeTransfer,
+                  ),
+              
+                  const SizedBox(height: 40),
                 ],
-
-                CustomTextField(
-                  controller: _noteController,
-                  label: "Nota (opcional)",
-                  hintText: "Ej: Pago a amigo, viaje...",
-                ),
-
-                const SizedBox(height: 30),
-
-                CustomButton(
-                  text: "Transferir",
-                  onPressed: (_fromWallet == null ||
-                          _toWallet == null ||
-                          _amount <= 0 ||
-                          _isConverting)
-                      ? null
-                      : _makeTransfer,
-                ),
-
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
           );
         },

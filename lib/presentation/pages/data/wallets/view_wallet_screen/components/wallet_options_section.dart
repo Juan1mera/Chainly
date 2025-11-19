@@ -70,10 +70,12 @@ class WalletOptionsSection extends ConsumerWidget {
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => CreateTransactionConvertScreen(
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => CreateTransactionConvertScreen(
                       initialFromWallet: wallet,
                     ),
+                    transitionsBuilder: (_, animation, __, child) =>
+                        FadeTransition(opacity: animation, child: child),
                   ),
                 );
 

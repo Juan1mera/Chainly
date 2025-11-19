@@ -173,61 +173,71 @@ class _CreateTransactionScreenState
           return _isLoadingCategories
               ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      CustomHeader(),
-
-                      // Tarjeta de la billetera seleccionada
-                      if (_selectedWallet != null) ...[
-                        WalletCard(wallet: _selectedWallet!),
-                        const SizedBox(height: 20),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppColors.green, AppColors.yellow],
+                      ),
+                    ),
+                    child: Column(
+                      
+                      children: [
+                        CustomHeader(),
+                    
+                        // Tarjeta de la billetera seleccionada
+                        if (_selectedWallet != null) ...[
+                          WalletCard(wallet: _selectedWallet!),
+                          const SizedBox(height: 20),
+                        ],
+                    
+                        // Selector de billetera
+                        CustomSelect<Wallet>(
+                          items: wallets,
+                          selectedItem: _selectedWallet,
+                          getDisplayText: (wallet) =>
+                              '${wallet.name} • ${wallet.currency} ',
+                          onChanged: (wallet) {
+                            setState(() {
+                              _selectedWallet = wallet;
+                            });
+                          },
+                          label: '',
+                        ),
+                    
+                        const SizedBox(height: 24),
+                    
+                        // Monto
+                        CustomNumberField(
+                          currency: _selectedWallet?.currency ?? 'USD',
+                          hintText: '0.00',
+                          onChanged: (val) => setState(() => _amount = val),
+                        ),
+                    
+                        const SizedBox(height: 24),
+                        _buildCategorySelector(),
+                        const SizedBox(height: 24),
+                        _buildTypeSelector(),
+                        const SizedBox(height: 24),
+                    
+                        CustomTextField(
+                          controller: _noteController,
+                          label: 'Nota (opcional)',
+                          hintText: 'Ej: Supermercado, salario, Netflix...',
+                          maxLines: 3,
+                        ),
+                    
+                        CustomButton(
+                          text: 'Save',
+                          onPressed:
+                              _isLoadingCategories || walletsAsync.isLoading
+                              ? null
+                              : _createTransaction,
+                        ),
+                        const SizedBox(height: 40),
                       ],
-
-                      // Selector de billetera
-                      CustomSelect<Wallet>(
-                        items: wallets,
-                        selectedItem: _selectedWallet,
-                        getDisplayText: (wallet) =>
-                            '${wallet.name} • ${wallet.currency} ',
-                        onChanged: (wallet) {
-                          setState(() {
-                            _selectedWallet = wallet;
-                          });
-                        },
-                        label: '',
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // Monto
-                      CustomNumberField(
-                        currency: _selectedWallet?.currency ?? 'USD',
-                        hintText: '0.00',
-                        onChanged: (val) => setState(() => _amount = val),
-                      ),
-
-                      const SizedBox(height: 24),
-                      _buildCategorySelector(),
-                      const SizedBox(height: 24),
-                      _buildTypeSelector(),
-                      const SizedBox(height: 24),
-
-                      CustomTextField(
-                        controller: _noteController,
-                        label: 'Nota (opcional)',
-                        hintText: 'Ej: Supermercado, salario, Netflix...',
-                        maxLines: 3,
-                      ),
-
-                      CustomButton(
-                        text: 'Save',
-                        onPressed:
-                            _isLoadingCategories || walletsAsync.isLoading
-                            ? null
-                            : _createTransaction,
-                      ),
-                      const SizedBox(height: 40),
-                    ],
+                    ),
                   ),
                 );
         },

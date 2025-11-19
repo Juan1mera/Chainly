@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wallet_app/core/database/db.dart';
 import 'package:wallet_app/models/category_model.dart';
@@ -141,7 +142,7 @@ class TransactionService {
         return double.parse((amount * rate).toStringAsFixed(8));
       }
     } catch (e) {
-      print('Error en conversión: $e');
+      debugPrint('Error en conversión: $e');
     }
     return amount;
   }
