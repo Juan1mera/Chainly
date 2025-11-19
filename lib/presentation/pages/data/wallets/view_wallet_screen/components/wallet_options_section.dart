@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/wallet_model.dart';
+import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_convert_screen/create_transaction_convert_screen.dart';
 import 'package:wallet_app/presentation/widgets/common/circle_bottom.dart';
 
 class WalletOptionsSection extends StatelessWidget {
@@ -9,6 +10,7 @@ class WalletOptionsSection extends StatelessWidget {
   final String currentFilter;
   final Function({required String type}) onCreateTransaction;
   final ValueChanged<String> onFilterChanged;
+  final VoidCallback onRefreshNeeded; 
 
   const WalletOptionsSection({
     super.key,
@@ -16,6 +18,7 @@ class WalletOptionsSection extends StatelessWidget {
     required this.currentFilter,
     required this.onCreateTransaction,
     required this.onFilterChanged,
+    required this.onRefreshNeeded,
   });
 
   @override
@@ -35,7 +38,7 @@ class WalletOptionsSection extends StatelessWidget {
           children: [
             CircleBottom(
               text: 'Income',
-              icon: const Icon(Bootstrap.arrow_down_left, size: 28, ),
+              icon: const Icon(Bootstrap.arrow_down_left, size: 28),
               onPressed: () => onCreateTransaction(type: 'income'),
             ),
             CircleBottom(
@@ -46,7 +49,20 @@ class WalletOptionsSection extends StatelessWidget {
             CircleBottom(
               text: 'Convert',
               icon: const Icon(Bootstrap.shuffle, size: 28),
-              onPressed: () {},
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CreateTransactionConvertScreen(
+                      initialFromWallet: wallet,
+                    ),
+                  ),
+                );
+
+                if (result == true) {
+                  onRefreshNeeded();
+                }
+              },
             ),
             CircleBottom(
               text: filterLabels[currentFilter] ?? 'Filtro',
@@ -76,7 +92,10 @@ class _FilterBottomSheet extends StatelessWidget {
   final String currentFilter;
   final Function(String) onSelected;
 
-  const _FilterBottomSheet({required this.currentFilter, required this.onSelected});
+  const _FilterBottomSheet({
+    required this.currentFilter,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -88,9 +107,20 @@ class _FilterBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(margin: const EdgeInsets.only(top: 12), width: 40, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10))),
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
           const SizedBox(height: 20),
-          const Text('Filtrar transacciones', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Filtrar transacciones',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
           _buildOption('all', 'Todas las transacciones'),
           _buildOption('income', 'Solo ingresos'),
@@ -104,8 +134,16 @@ class _FilterBottomSheet extends StatelessWidget {
   Widget _buildOption(String value, String label) {
     final bool isSelected = currentFilter == value;
     return ListTile(
-      leading: Icon(isSelected ? Icons.check_circle : Icons.circle_outlined, color: isSelected ? AppColors.black : Colors.grey),
-      title: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+      leading: Icon(
+        isSelected ? Icons.check_circle : Icons.circle_outlined,
+        color: isSelected ? AppColors.black : Colors.grey,
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
       onTap: () => onSelected(value),
     );
   }

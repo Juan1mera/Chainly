@@ -234,6 +234,7 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen> {
                             setState(() => _filterType = filter);
                             _loadTransactions();
                           },
+                          onRefreshNeeded: _loadData, // ← Aquí le dices que recargue todo
                         ),
                       ),
                     ),

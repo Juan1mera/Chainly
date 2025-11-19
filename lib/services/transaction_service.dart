@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:wallet_app/core/database/db.dart';
 import 'package:wallet_app/models/category_model.dart';
 import 'package:wallet_app/models/transaction_model.dart';
@@ -11,8 +13,9 @@ class TransactionService {
   final AuthService _authService = AuthService();
   final CategoryService _categoryService = CategoryService();
 
+  // CREAR
   Future<int> createTransaction(Transaction transaction) async {
-    final userEmail = _authService.currentUserEmail; 
+    final userEmail = _authService.currentUserEmail;
     if (userEmail == null) throw Exception('User not authenticated');
 
     final db = await _db.database;
@@ -27,52 +30,123 @@ class TransactionService {
     return await db.insert('transactions', transaction.toMap());
   }
 
-// ← Reemplaza SOLO este método en tu TransactionService
-Future<int> createTransactionWithCategoryName({
-  required int walletId,
-  required String type,
-  required double amount,
-  required String categoryName,
-  String? note,
-}) async {
-  final db = await _db.database;
+  Future<int> createTransactionWithCategoryName({
+    required int walletId,
+    required String type,
+    required double amount,
+    required String categoryName,
+    String? note,
+  }) async {
+    final db = await _db.database;
+    final categoryId = await _categoryService.getOrCreateCategoryId(categoryName);
+    final now = DateTime.now();
+    final transaction = Transaction(
+      walletId: walletId,
+      categoryId: categoryId,
+      type: type,
+      amount: amount,
+      note: note,
+      date: now,
+      createdAt: now,
+    );
 
-  // 1. Aseguramos que la categoría exista
-  final categoryId = await _categoryService.getOrCreateCategoryId(categoryName);
+    return await db.transaction((txn) async {
+      final transactionId = await txn.insert('transactions', transaction.toMap());
+      final balanceChange = type == 'income' ? amount : -amount;
+      await txn.rawUpdate(
+        'UPDATE wallets SET balance = balance + ? WHERE id = ?',
+        [balanceChange, walletId],
+      );
+      return transactionId;
+    });
+  }
 
-  // 2. Creamos la transacción
-  final now = DateTime.now();
-  final transaction = Transaction(
-    walletId: walletId,
-    categoryId: categoryId,
-    type: type,
-    amount: amount,
-    note: note,
-    date: now,
-    createdAt: now,
-  );
+  // TRANSFERENCIA ENTRE BILLETERAS
+  Future<void> transferBetweenWallets({
+    required int fromWalletId,
+    required int toWalletId,
+    required double fromAmount,
+    String? note,
+  }) async {
+    if (fromWalletId == toWalletId) {
+      throw Exception('No puedes transferir a la misma billetera');
+    }
+    if (fromAmount <= 0) {
+      throw Exception('El monto debe ser mayor a 0');
+    }
 
-  // 3. Iniciar una transacción de base de datos para mantener consistencia
-  return await db.transaction((txn) async {
-    // Insertar la transacción
-    final transactionId = await txn.insert('transactions', transaction.toMap());
+    final db = await _db.database;
 
-    // 4. Actualizar el balance de la wallet
-    final updateQuery = '''
-      UPDATE wallets 
-      SET balance = balance + ? 
-      WHERE id = ?
-    ''';
+    final fromWalletResult = await db.query('wallets', where: 'id = ?', whereArgs: [fromWalletId]);
+    final toWalletResult = await db.query('wallets', where: 'id = ?', whereArgs: [toWalletId]);
 
-    // Si es ingreso → suma, si es gasto → resta
-    final balanceChange = type == 'income' ? amount : -amount;
+    if (fromWalletResult.isEmpty) throw Exception('Billetera origen no encontrada');
+    if (toWalletResult.isEmpty) throw Exception('Billetera destino no encontrada');
 
-    await txn.rawUpdate(updateQuery, [balanceChange, walletId]);
+    final fromWallet = Wallet.fromMap(fromWalletResult.first);
+    final toWallet = Wallet.fromMap(toWalletResult.first);
 
-    return transactionId;
-  });
-}
+    double toAmount = fromAmount;
+    if (fromWallet.currency != toWallet.currency) {
+      toAmount = await convertCurrency(
+        amount: fromAmount,
+        fromCurrency: fromWallet.currency,
+        toCurrency: toWallet.currency,
+      );
+    }
 
+    final now = DateTime.now();
+    final transferOut = Transaction(
+      walletId: fromWalletId,
+      categoryId: await _categoryService.getOrCreateCategoryId('Transferencia saliente'),
+      type: 'expense',
+      amount: fromAmount,
+      note: note ?? 'Transferencia a ${toWallet.name}',
+      date: now,
+      createdAt: now,
+    );
+
+    final transferIn = Transaction(
+      walletId: toWalletId,
+      categoryId: await _categoryService.getOrCreateCategoryId('Transferencia entrante'),
+      type: 'income',
+      amount: toAmount,
+      note: note ?? 'Transferencia desde ${fromWallet.name}',
+      date: now,
+      createdAt: now,
+    );
+
+    await db.transaction((txn) async {
+      await txn.insert('transactions', transferOut.toMap());
+      await txn.insert('transactions', transferIn.toMap());
+      await txn.rawUpdate('UPDATE wallets SET balance = balance - ? WHERE id = ?', [fromAmount, fromWalletId]);
+      await txn.rawUpdate('UPDATE wallets SET balance = balance + ? WHERE id = ?', [toAmount, toWalletId]);
+    });
+  }
+
+  // CONVERSIÓN DE DIVISAS
+  Future<double> convertCurrency({
+    required double amount,
+    required String fromCurrency,
+    required String toCurrency,
+  }) async {
+    final from = fromCurrency.toUpperCase();
+    final to = toCurrency.toUpperCase();
+
+    try {
+      final response = await http.get(Uri.parse('https://api.exchangerate-api.com/v4/latest/$from'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final rate = (data['rates'][to] as num?)?.toDouble() ?? 1.0;
+        return double.parse((amount * rate).toStringAsFixed(8));
+      }
+    } catch (e) {
+      print('Error en conversión: $e');
+    }
+    return amount;
+  }
+
+  // OBTENER
   Future<List<Transaction>> getTransactionsByWallet(
     int walletId, {
     String? type,
@@ -80,21 +154,20 @@ Future<int> createTransactionWithCategoryName({
     DateTime? to,
   }) async {
     final db = await _db.database;
-
-    final whereParts = <String>['wallet_id = ?'];
-    final whereArgs = <Object>[walletId];
+    final whereParts = ['wallet_id = ?'];
+    final whereArgs = [walletId];
 
     if (type != null) {
       whereParts.add('type = ?');
-      whereArgs.add(type);
+      whereArgs.add(type as int);
     }
     if (from != null) {
       whereParts.add('date >= ?');
-      whereArgs.add(from.toIso8601String());
+      whereArgs.add(from.toIso8601String() as int);
     }
     if (to != null) {
       whereParts.add('date <= ?');
-      whereArgs.add(to.toIso8601String());
+      whereArgs.add(to.toIso8601String() as int);
     }
 
     final maps = await db.query(
@@ -103,7 +176,6 @@ Future<int> createTransactionWithCategoryName({
       whereArgs: whereArgs,
       orderBy: 'date DESC',
     );
-
     return maps.map(Transaction.fromMap).toList();
   }
 
@@ -113,7 +185,6 @@ Future<int> createTransactionWithCategoryName({
     DateTime? to,
   }) async {
     final db = await _db.database;
-
     final whereParts = <String>[];
     final whereArgs = <Object>[];
 
@@ -136,42 +207,15 @@ Future<int> createTransactionWithCategoryName({
       whereArgs: whereArgs.isEmpty ? null : whereArgs,
       orderBy: 'date DESC',
     );
-
     return maps.map(Transaction.fromMap).toList();
   }
 
-  Future<bool> updateTransaction(Transaction transaction) async {
-    if (transaction.id == null) throw Exception('Transaction ID required');
-
-    final db = await _db.database;
-    final result = await db.update(
-      'transactions',
-      transaction.toMap(),
-      where: 'id = ?',
-      whereArgs: [transaction.id],
-    );
-    return result > 0;
-  }
-
-  Future<bool> deleteTransaction(int id) async {
-    final db = await _db.database;
-    final result = await db.delete(
-      'transactions',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    return result > 0;
-  }
-
-
-Future<List<TransactionWithDetails>> getAllTransactionsWithDetails({
+  Future<List<TransactionWithDetails>> getAllTransactionsWithDetails({
     String? type,
     DateTime? from,
     DateTime? to,
   }) async {
     final db = await _db.database;
-
-    // 1. Primero obtenemos todas las transacciones (con filtros)
     final whereParts = <String>[];
     final whereArgs = <Object>[];
 
@@ -189,8 +233,6 @@ Future<List<TransactionWithDetails>> getAllTransactionsWithDetails({
     }
 
     final whereClause = whereParts.isEmpty ? null : whereParts.join(' AND ');
-
-    // 2. JOIN con wallets y categories para traer todo junto
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT 
         t.*,
@@ -207,25 +249,41 @@ Future<List<TransactionWithDetails>> getAllTransactionsWithDetails({
       ORDER BY t.date DESC
     ''', whereArgs);
 
-    // 3. Convertir a objetos
     final List<TransactionWithDetails> result = [];
-
     for (final map in maps) {
       final transaction = Transaction.fromMap(_extractTransactionMap(map));
       final wallet = Wallet.fromMap(_extractWalletMap(map));
       final category = Category.fromMap(_extractCategoryMap(map));
-
-      result.add(TransactionWithDetails(
-        transaction: transaction,
-        wallet: wallet,
-        category: category,
-      ));
+      result.add(TransactionWithDetails(transaction: transaction, wallet: wallet, category: category));
     }
-
     return result;
   }
 
-  // Helpers para extraer sub-mapas (porque rawQuery devuelve todo plano)
+  // ACTUALIZAR
+  Future<bool> updateTransaction(Transaction transaction) async {
+    if (transaction.id == null) throw Exception('Transaction ID required');
+    final db = await _db.database;
+    final result = await db.update(
+      'transactions',
+      transaction.toMap(),
+      where: 'id = ?',
+      whereArgs: [transaction.id],
+    );
+    return result > 0;
+  }
+
+  // ELIMINAR
+  Future<bool> deleteTransaction(int id) async {
+    final db = await _db.database;
+    final result = await db.delete(
+      'transactions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return result > 0;
+  }
+
+  // HELPERS
   Map<String, dynamic> _extractTransactionMap(Map<String, dynamic> map) {
     return {
       'id': map['id'],
@@ -245,7 +303,7 @@ Future<List<TransactionWithDetails>> getAllTransactionsWithDetails({
       'name': map['wallet_name'] ?? 'Unknown Wallet',
       'currency': map['wallet_currency'] ?? 'USD',
       'color': map['wallet_color'] ?? '#000000',
-      'balance': 0.0, // no lo necesitamos aquí
+      'balance': 0.0,
       'is_favorite': 0,
       'is_archived': 0,
       'type': 'bank',
@@ -262,6 +320,4 @@ Future<List<TransactionWithDetails>> getAllTransactionsWithDetails({
       'color': map['category_color'],
     };
   }
-
-
 }
