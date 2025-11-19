@@ -59,9 +59,16 @@ class AppDrawer extends StatelessWidget {
           _buildDrawerItem(
             context,
             index: 3,
+            icon: Icons.view_kanban_outlined,
+            title: 'Categories',
+            isSelected: currentIndex == 3,
+          ),
+          _buildDrawerItem(
+            context,
+            index: 4,
             icon: Icons.person,
             title: 'Profile',
-            isSelected: currentIndex == 3,
+            isSelected: currentIndex == 4,
           ),
 
           const Spacer(),

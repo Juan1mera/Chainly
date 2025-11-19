@@ -1,5 +1,6 @@
 // lib/main_drawer_nav.dart
 import 'package:flutter/material.dart';
+import 'package:wallet_app/presentation/pages/main/categories_screen/categories_screen.dart';
 import 'package:wallet_app/presentation/pages/main/home_screen/components/header_home_section.dart';
 import 'package:wallet_app/presentation/pages/main/home_screen/home_screen.dart';
 import 'package:wallet_app/presentation/pages/main/wallets_screen/wallets_screen.dart';
@@ -21,6 +22,7 @@ class _MainDrawerNavState extends State<MainDrawerNav> {
     HomeScreen(),
     WalletsScreen(),
     StatsScreen(),
+    CategoriesScreen(),
     ProfileScreen(),
   ];
 
