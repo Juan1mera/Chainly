@@ -1,0 +1,144 @@
+import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
+import 'package:wallet_app/core/constants/colors.dart';
+import 'package:wallet_app/core/constants/fonts.dart';
+import 'package:wallet_app/models/transaction_model.dart';
+import 'package:wallet_app/models/category_model.dart';
+import 'package:wallet_app/presentation/widgets/common/transaction_card_simple.dart';
+
+class TransactionListSection extends StatelessWidget {
+  final List<Transaction> transactions;
+  final List<Category> categories;
+  final String currency;
+
+  const TransactionListSection({
+    super.key,
+    required this.transactions,
+    required this.categories,
+    required this.currency,
+  });
+
+  String _getSymbol(String currency) {
+    const map = {
+      'USD': r'$',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+      'MXN': r'$',
+      'BRL': r'R$',
+      'INR': '₹',
+      'COP': r'$',
+    };
+    return map[currency] ?? currency;
+  }
+
+  String _formatDate(DateTime d) {
+    const months = [
+      'ene',
+      'feb',
+      'mar',
+      'abr',
+      'may',
+      'jun',
+      'jul',
+      'ago',
+      'sep',
+      'oct',
+      'nov',
+      'dic',
+    ];
+    return '${d.day.toString().padLeft(2, '0')} ${months[d.month - 1]} ${d.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (transactions.isEmpty) {
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.receipt_long_outlined,
+                size: 80,
+                color: Colors.white70,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'No hay transacciones',
+                style: TextStyle(fontSize: 18, color: Colors.black),
+              ),
+              Text(
+                'Toca + para empezar',
+                style: TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final symbol = _getSymbol(currency);
+    final grouped = groupBy(
+      transactions,
+      (Transaction t) => _formatDate(t.date),
+    );
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final date = grouped.keys.elementAt(index);
+        final dayTransactions = grouped[date]!;
+
+        return TweenAnimationBuilder<double>(
+          duration: Duration(milliseconds: 500 + index * 100),
+          tween: Tween(begin: 0.0, end: 1.0),
+          curve: Curves.easeOutCubic,
+          builder: (_, value, child) {
+            return Opacity(
+              opacity: value,
+              child: Transform.translate(
+                offset: Offset(0, 50 * (1 - value)),
+                child: child,
+              ),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Text(
+                  date,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.black,
+                    fontFamily: AppFonts.clashDisplay
+                  ),
+                ),
+              ),
+              ...dayTransactions.map((t) {
+                final category =
+                    categories.firstWhereOrNull((c) => c.id == t.categoryId) ??
+                    Category(name: 'Sin categoría', icon: 'question_mark');
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: TransactionCardSimple(
+                    key: ValueKey(t.id),
+                    transaction: t,
+                    category: category,
+                    currencySymbol: symbol,
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      }, childCount: grouped.length),
+    );
+  }
+}

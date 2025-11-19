@@ -1,5 +1,3 @@
-// lib/presentation/pages/extra/wallet_screen/wallet_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wallet_app/core/constants/colors.dart';
@@ -7,29 +5,23 @@ import 'package:wallet_app/models/wallet_model.dart';
 import 'package:wallet_app/models/transaction_model.dart';
 import 'package:wallet_app/models/category_model.dart';
 import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_screen/create_transaction_screen.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/transaction_list.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/transaction_tabs.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_card.dart';
+import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/transaction_list_section.dart';
+import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_options_section.dart';
+import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_section.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_modal.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_number_field.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
 import 'package:wallet_app/services/category_service.dart';
 import 'package:wallet_app/services/transaction_service.dart';
 import 'package:wallet_app/services/wallet_service.dart';
-import 'package:wallet_app/providers/wallet_provider.dart'; // Necesario para refresh
 
 class ViewWalletScreen extends ConsumerStatefulWidget {
   final int walletId;
-
   const ViewWalletScreen({super.key, required this.walletId});
 
   @override
   ConsumerState<ViewWalletScreen> createState() => _ViewWalletScreenState();
 }
 
-class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen>
-    with SingleTickerProviderStateMixin {
+class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen> {
   final WalletService _walletService = WalletService();
   final TransactionService _transactionService = TransactionService();
   final CategoryService _categoryService = CategoryService();
@@ -37,45 +29,34 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen>
   Wallet? _wallet;
   List<Transaction> _transactions = [];
   List<Category> _categories = [];
-  bool _isLoading = true;
   String _filterType = 'all';
-
-  late TabController _tabController;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(_onTabChanged);
     _loadData();
-  }
-
-  @override
-  void dispose() {
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void _onTabChanged() {
-    if (_tabController.indexIsChanging) return;
-    setState(() => _filterType = ['all', 'income', 'expense'][_tabController.index]);
-    _loadTransactions();
   }
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    await Future.wait([_loadWallet(), _loadCategories(), _loadTransactions()]);
+
+    final walletFuture = _walletService.getWallets(includeArchived: true);
+    final categoriesFuture = _categoryService.getCategories();
+
+    final results = await Future.wait([walletFuture, categoriesFuture]);
+    final wallets = results[0] as List<Wallet>;
+    final categories = results[1] as List<Category>;
+
+    if (!mounted) return;
+
+    setState(() {
+      _wallet = wallets.firstWhere((w) => w.id == widget.walletId);
+      _categories = categories;
+    });
+
+    await _loadTransactions();
     if (mounted) setState(() => _isLoading = false);
-  }
-
-  Future<void> _loadWallet() async {
-    final wallets = await _walletService.getWallets(includeArchived: true);
-    _wallet = wallets.firstWhere((w) => w.id == widget.walletId, orElse: () => _wallet!);
-  }
-
-  Future<void> _loadCategories() async {
-    _categories = await _categoryService.getCategories();
   }
 
   Future<void> _loadTransactions() async {
@@ -83,18 +64,23 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen>
       widget.walletId,
       type: _filterType == 'all' ? null : _filterType,
     );
-    if (mounted) setState(() => _transactions = transactions);
+    if (mounted) {
+      setState(() => _transactions = transactions);
+    }
   }
 
-  void _goToCreateTransaction() async {
+  void _goToCreateTransaction({required String type}) async {
     if (_wallet == null) return;
 
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => CreateTransactionScreen(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => CreateTransactionScreen(
           initialWalletId: _wallet!.id!,
+          initialType: type,
         ),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
 
@@ -103,170 +89,190 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen>
     }
   }
 
-  // === ACCIONES DEL MENÚ ===
-
-  void _toggleArchive() async {
+  // === ACCIONES DE CARTERA ===
+  Future<void> _toggleArchive() async {
     if (_wallet == null) return;
-    final updated = _wallet!.copyWith(isArchived: !_wallet!.isArchived);
-    await _walletService.updateWallet(updated);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(updated.isArchived ? 'Cartera archivada' : 'Cartera desarchivada')),
-      );
-      ref.read(walletsProvider.notifier).refresh();
-      _loadWallet();
-    }
-  }
-
-  void _toggleFavorite() async {
-    if (_wallet == null) return;
-    final updated = _wallet!.copyWith(isFavorite: !_wallet!.isFavorite);
-    await _walletService.updateWallet(updated);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(updated.isFavorite ? 'Añadida a favoritos' : 'Quitada de favoritos')),
-      );
-      ref.read(walletsProvider.notifier).refresh();
-      _loadWallet();
-    }
-  }
-
-  void _createExpense() {
-    if (_wallet == null) return;
-    final amountCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-
-    showCustomModal(
-      context: context,
-      title: 'Nuevo gasto',
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Desde: ${_wallet!.name}', style: TextStyle(color: Colors.grey[700])),
-            const SizedBox(height: 20),
-            CustomNumberField(currency: _wallet!.currency, controller: amountCtrl, hintText: '0.00'),
-            const SizedBox(height: 16),
-            CustomTextField(controller: descCtrl, hintText: 'Descripción (opcional)', icon: Icons.note),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          onPressed: () async {
-            final amount = double.tryParse(amountCtrl.text.replaceAll(',', '')) ?? 0;
-            if (amount <= 0) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Monto inválido')));
-              return;
-            }
-            final updated = _wallet!.copyWith(balance: _wallet!.balance - amount);
-            await _walletService.updateWallet(updated);
-            Navigator.pop(context);
-            _loadWallet();
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gasto de ${_wallet!.currency} $amount registrado')));
-          },
-          child: const Text('Crear gasto', style: TextStyle(color: Colors.white)),
-        ),
-      ],
+    await _walletService.updateWallet(
+      _wallet!.copyWith(isArchived: !_wallet!.isArchived),
     );
+    if (mounted) await _loadWallet();
   }
 
-  void _deleteWallet() async {
+  Future<void> _toggleFavorite() async {
+    if (_wallet == null) return;
+    await _walletService.updateWallet(
+      _wallet!.copyWith(isFavorite: !_wallet!.isFavorite),
+    );
+    if (mounted) await _loadWallet();
+  }
+
+  Future<void> _deleteWallet() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar cartera'),
-        content: Text('¿Seguro que quieres eliminar "${_wallet?.name}"? Esta acción es irreversible.'),
+      builder: (_) => AlertDialog(
+        title: const Text("Eliminar cartera"),
+        content: const Text("Esta acción no se puede deshacer."),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
           TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Eliminar'),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Eliminar", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
 
-    if (confirm == true && _wallet != null) {
+    if (confirm == true) {
       await _walletService.deleteWallet(_wallet!.id!);
-      if (mounted) {
-        ref.read(walletsProvider.notifier).refresh();
-        Navigator.of(context).pop(); // Vuelve a la lista de carteras
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cartera eliminada')));
-      }
+      if (mounted) Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _loadWallet() async {
+    final wallets = await _walletService.getWallets(includeArchived: true);
+    if (mounted) {
+      setState(() {
+        _wallet = wallets.firstWhere((w) => w.id == widget.walletId);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final menuItems = <PopupMenuEntry<dynamic>>[
-      PopupMenuItem(
-        child: Row(children: [
-          Icon(_wallet?.isArchived == true ? Icons.unarchive : Icons.archive),
-          const SizedBox(width: 12),
-          Text(_wallet?.isArchived == true ? 'Desarchivar' : 'Archivar'),
-        ]),
-        onTap: _toggleArchive,
-      ),
-      PopupMenuItem(
-        child: Row(children: [
-          Icon(_wallet?.isFavorite == true ? Icons.star : Icons.star_border, color: _wallet?.isFavorite == true ? Colors.amber : null),
-          const SizedBox(width: 12),
-          Text(_wallet?.isFavorite == true ? 'Quitar de favoritos' : 'Añadir a favoritos'),
-        ]),
-        onTap: _toggleFavorite,
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem(
-        child: const Row(children: [Icon(Icons.remove_circle_outline, color: Colors.red), SizedBox(width: 12), Text('Crear gasto')]),
-        onTap: _createExpense,
-      ),
-      PopupMenuItem(
-        child: const Row(children: [Icon(Icons.swap_horiz, color: Colors.blue), SizedBox(width: 12), Text('Crear transacción')]),
-        onTap: _goToCreateTransaction,
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem(
-        child: const Row(children: [Icon(Icons.delete_forever, color: Colors.red), SizedBox(width: 12), Text('Eliminar cartera', style: TextStyle(color: Colors.red))]),
-        onTap: _deleteWallet,
-      ),
-    ];
+    final menuItems = _wallet == null
+        ? <PopupMenuEntry<dynamic>>[]
+        : <PopupMenuEntry<dynamic>>[
+            PopupMenuItem(
+              onTap: _toggleArchive,
+              child: Row(
+                children: [
+                  Icon(_wallet!.isArchived ? Icons.unarchive : Icons.archive),
+                  const SizedBox(width: 12),
+                  Text(_wallet!.isArchived ? 'Desarchivar' : 'Archivar'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              onTap: _toggleFavorite,
+              child: Row(
+                children: [
+                  Icon(
+                    _wallet!.isFavorite ? Icons.star : Icons.star_border,
+                    color: _wallet!.isFavorite ? Colors.amber : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _wallet!.isFavorite
+                        ? 'Quitar de favoritos'
+                        : 'Añadir a favoritos',
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              onTap: _deleteWallet,
+              child: const Row(
+                children: [
+                  Icon(Icons.delete_forever, color: Colors.red),
+                  SizedBox(width: 12),
+                  Text('Eliminar cartera', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+            ),
+          ];
 
     return Scaffold(
-      appBar: CustomHeader(
-        menuItems: _wallet == null ? [] : menuItems,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.purple,
-        onPressed: _goToCreateTransaction,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Nueva transacción', style: TextStyle(color: Colors.white)),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _wallet == null
-              ? const Center(child: Text('Cartera no encontrada'))
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: Column(
-                    children: [
-                      WalletCard(wallet: _wallet!),
-                      TransactionTabs(controller: _tabController),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: TransactionList(
-                          transactions: _transactions,
-                          categories: _categories,
-                          currency: _wallet!.currency,
+      extendBodyBehindAppBar: true,
+      appBar: CustomHeader(menuItems: menuItems),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.green, AppColors.yellow],
+          ),
+        ),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
+            : _wallet == null
+            ? const Center(
+                child: Text(
+                  'Cartera no encontrada',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadData,
+                color: AppColors.purple,
+                child: CustomScrollView(
+                  slivers: [
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: kToolbarHeight + 60),
+                    ),
+
+                    SliverToBoxAdapter(
+                      child: _AnimatedSection(
+                        delay: 100,
+                        child: WalletSection(wallet: _wallet!),
+                      ),
+                    ),
+
+                    SliverToBoxAdapter(
+                      child: _AnimatedSection(
+                        delay: 250,
+                        child: WalletOptionsSection(
+                          wallet: _wallet!,
+                          currentFilter: _filterType,
+                          onCreateTransaction: _goToCreateTransaction,
+                          onFilterChanged: (filter) {
+                            setState(() => _filterType = filter);
+                            _loadTransactions();
+                          },
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                    // LISTA DE TRANSACCIONES
+                    TransactionListSection(
+                      transactions: _transactions,
+                      categories: _categories,
+                      currency: _wallet!.currency,
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  ],
                 ),
+              ),
+      ),
+    );
+  }
+}
+
+class _AnimatedSection extends StatelessWidget {
+  final Widget child;
+  final int delay;
+  const _AnimatedSection({required this.child, required this.delay});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      duration: Duration(milliseconds: 800 + delay),
+      tween: Tween(begin: 0.0, end: 1.0),
+      curve: Curves.easeOutCubic,
+      builder: (_, value, __) {
+        return Transform.translate(
+          offset: Offset(0, 100 * (1 - value)),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
     );
   }
 }

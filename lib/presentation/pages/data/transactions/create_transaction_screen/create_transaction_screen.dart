@@ -4,7 +4,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/models/category_model.dart';
 import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_card.dart';
+import 'package:wallet_app/presentation/widgets/common/wallet_card.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_number_field.dart';
@@ -16,8 +16,9 @@ import 'package:wallet_app/services/transaction_service.dart';
 
 class CreateTransactionScreen extends ConsumerStatefulWidget {
   final int? initialWalletId;
+  final String? initialType;
 
-  const CreateTransactionScreen({super.key, this.initialWalletId});
+  const CreateTransactionScreen({super.key, this.initialWalletId, this.initialType, });
 
   @override
   ConsumerState<CreateTransactionScreen> createState() =>

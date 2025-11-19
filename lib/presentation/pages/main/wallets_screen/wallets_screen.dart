@@ -4,7 +4,7 @@ import 'package:wallet_app/core/constants/colors.dart';
 import 'package:wallet_app/core/constants/currencies.dart';
 import 'package:wallet_app/core/constants/fonts.dart';
 import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_card.dart';
+import 'package:wallet_app/presentation/widgets/common/wallet_card.dart';
 import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/view_wallet_screen.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
 import 'package:wallet_app/presentation/widgets/ui/custom_modal.dart';
