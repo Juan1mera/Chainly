@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/fonts.dart';
 import 'package:chainly/presentation/pages/auth/login_screen.dart';
 import 'package:chainly/presentation/widgets/navigation/main_drawer_nav.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
@@ -104,90 +105,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-
-              // === HEADER CON LOGO Y PERRO ===
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 30),
-                  SizedBox(
-                    width: 190,
-                    height: 190,
-                    child: SvgPicture.asset(
-                      'assets/Icon.svg',
-                      fit: BoxFit.contain,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.black,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+              SizedBox(
+                width: 190,
+                height: 190,
+                child: SvgPicture.asset(
+                  'assets/Icon.svg',
+                  fit: BoxFit.contain,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.black,
+                    BlendMode.srcIn,
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    height: 190,
-                    child: SvgPicture.asset(
-                      'assets/animals_login/dog.svg',
-                      fit: BoxFit.contain,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.black,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
 
               // Textos de bienvenida
-              Padding(
-                padding: const EdgeInsets.only(left: 30, top: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '¡Crea tu cuenta!',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Synonym',
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const Text(
-                      'Regístrate en chainly',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Synonym',
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Únete a nuestra comunidad veterinaria',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'Chillax-Extralight',
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Completa tus datos para comenzar',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontFamily: 'Chillax-Extralight',
-                        color: AppColors.black,
-                      ),
-                    ),
-                  ],
+
+              const Text(
+                '¡Crea tu cuenta!',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: AppFonts.clashDisplay,
+                  color: AppColors.black,
+                ),
+              ),
+              const Text(
+                'Regístrate en chainly',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w400,
+                  fontFamily: AppFonts.clashDisplay,
+                  color: AppColors.black,
                 ),
               ),
 
@@ -202,12 +156,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               style: const TextStyle(
                                 color: AppColors.red,
                                 fontSize: 14,
-                                fontFamily: 'Chillax-Extralight',
+                                fontFamily: AppFonts.clashDisplay,
                               ),
                             ))
                         .toList(),
                   ),
                 ),
+
+              const SizedBox(height: 66),
 
               // === FORMULARIO ===
               CustomTextField(
@@ -217,6 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onChanged: (value) => setState(() {}),
                 controller: _nameController,
               ),
+              const SizedBox(height: 16),
               CustomTextField(
                 hintText: 'Correo electrónico',
                 icon: Icons.mail_outline,
@@ -224,6 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onChanged: (value) => setState(() {}),
                 controller: _emailController,
               ),
+              const SizedBox(height: 16),
               CustomTextField(
                 hintText: 'Contraseña',
                 icon: Icons.lock_outline,
@@ -257,7 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   '¿Ya tienes una cuenta? Inicia sesión',
                   style: TextStyle(
                     fontSize: 16,
-                    fontFamily: 'Chillax-Extralight',
+                    fontFamily: AppFonts.clashDisplay,
                     color: AppColors.black,
                   ),
                   textAlign: TextAlign.center,
@@ -267,48 +225,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 12),
 
               // Botón Iniciar Sesión
-              Center(
-                child: CustomButton(
-                  text: 'Iniciar sesión',
-                  onPressed: _isLoading ? null : () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
-                  },
-                ),
+              CustomButton(
+                text: 'Iniciar sesión',
+                onPressed: _isLoading ? null : () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
               ),
 
-              // === FOOTER CON VACA Y GATO ===
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    height: 160,
-                    child: SvgPicture.asset(
-                      'assets/animals_login/cow.svg',
-                      fit: BoxFit.contain,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.black,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    height: 160,
-                    child: SvgPicture.asset(
-                      'assets/animals_login/cat.svg',
-                      fit: BoxFit.contain,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.black,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         ),

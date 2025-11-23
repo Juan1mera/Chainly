@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:chainly/core/constants/fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:chainly/core/constants/colors.dart';
 
@@ -71,6 +72,7 @@ class CustomButton extends StatelessWidget {
                       fontSize: 17,
                       fontWeight: FontWeight.w500,
                       color: AppColors.black,
+                      fontFamily: AppFonts.clashDisplay
                     ),
                   ),
                   if (rightIcon != null) ...[

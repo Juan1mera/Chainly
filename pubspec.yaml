@@ -77,7 +77,6 @@ flutter:
   assets:
       - assets/Icon.svg
       - assets/IconLabel.svg
-      - assets/amigo_vet_label.svg
       - assets/animalsCircle/
 
       - assets/animals_login/cat.svg

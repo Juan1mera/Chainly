@@ -95,13 +95,20 @@ class _WalletsHomeSectionState extends State<WalletsHomeSection>
   @override
   Widget build(BuildContext context) {
     if (_displayWallets.isEmpty) {
-      return const Card(
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: .8),
+          borderRadius: BorderRadius.circular(16)
+        ),
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Text(
-            'No tienes carteras aún',
+            "You don't have wallets yet",
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey,
+              fontFamily: AppFonts.clashDisplay
+            ),
           ),
         ),
       );

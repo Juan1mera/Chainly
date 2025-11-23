@@ -1,6 +1,8 @@
 // lib/welcome_screen.dart
+import 'package:chainly/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
+import 'package:flutter_svg/svg.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -11,24 +13,40 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CustomButton(
-              text: 'Login', 
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              ), 
-            ),
-            CustomButton(
-              text: 'Register', 
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RegisterScreen()),
+        child: Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 90,
+                child: SvgPicture.asset(
+                  'assets/IconLabel.svg',
+                  fit: BoxFit.contain,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.black,
+                    BlendMode.srcIn,
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 150,),
+              CustomButton(
+                text: 'Login', 
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                ), 
+              ),
+              const SizedBox(height: 50,),
+              CustomButton(
+                text: 'Register', 
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

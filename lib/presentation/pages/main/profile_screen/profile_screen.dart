@@ -41,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Foto de perfil actualizada'),
+            content: Text('Foto de perfil actualizada'),
             backgroundColor: Colors.green,
           ),
         );
@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: ${e.toString()}'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🗑️ Foto eliminada'),
+            content: Text('Foto eliminada'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -80,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: ${e.toString()}'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -103,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_library, color: AppColors.purple),
-                title: const Text('Cambiar foto de perfil'),
+                title: const Text('Change profile photo'),
                 onTap: () {
                   Navigator.pop(context);
                   _uploadImage();
@@ -112,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
                 ListTile(
                   leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text('Eliminar foto actual'),
+                  title: const Text('Delete current photo'),
                   onTap: () {
                     Navigator.pop(context);
                     _deleteImage();
@@ -121,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.close),
-                title: const Text('Cancelar'),
+                title: const Text('Cancel'),
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -136,17 +136,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Cerrar Sesión'),
-            content: const Text('¿Estás seguro de que quieres cerrar sesión?'),
+            title: const Text('Log out'),
+            content: const Text('Are you sure you want to log out?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Cerrar Sesión'),
+                child: const Text('Log out'),
               ),
             ],
           ),
@@ -225,12 +225,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // === FORMATO DE FECHA ===
   String _formatDate(String? dateTime) {
-    if (dateTime == null) return 'No disponible';
+    if (dateTime == null) return 'Not available';
     try {
       final date = DateTime.parse(dateTime);
       return '${date.day}/${date.month}/${date.year}';
     } catch (e) {
-      return 'Fecha inválida';
+      return 'Invalid date';
     }
   }
 
@@ -262,7 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AppColors.greyDark,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -289,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return Scaffold(
         appBar: AppBar(title: const Text('Perfil')),
         body: const Center(
-          child: Text('No hay usuario autenticado'),
+          child: Text('There is no authenticated user'),
         ),
       );
     }
@@ -309,7 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 20),
             
             Text(
-              _displayName ?? 'Usuario',
+              _displayName ?? 'User ',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -329,7 +329,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
-                  'Toca el ícono de cámara para añadir una foto',
+                  'Tap the camera icon to add a photo',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[500],
@@ -342,19 +342,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 32),
 
             // === INFORMACIÓN ===
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: .7),
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey[200]!),
-              ),
+              ),              
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Información de la Cuenta',
+                      'Account Information',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -368,26 +367,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     _buildInfoRow(
                       icon: Icons.person,
-                      label: 'Nombre',
+                      label: 'Name',
                       value: _displayName ?? 'Sin nombre',
                     ),
                     _buildInfoRow(
-                      icon: Icons.phone,
-                      label: 'Teléfono',
-                      value: _user!.phone ?? 'No configurado',
-                    ),
-                    _buildInfoRow(
                       icon: Icons.calendar_today,
-                      label: 'Miembro desde',
+                      label: 'Member since',
                       value: _formatDate(_user!.createdAt),
-                    ),
-                    _buildInfoRow(
-                      icon: Icons.verified_user,
-                      label: 'Estado del email',
-                      value: _user!.emailConfirmedAt != null ? 'Verificado' : 'No verificado',
-                      valueColor: _user!.emailConfirmedAt != null 
-                          ? Colors.green 
-                          : Colors.orange,
                     ),
                   ],
                 ),
@@ -398,13 +384,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // === BOTÓN CERRAR SESIÓN ===
             CustomButton(
-              text: 'Cerrar Sesión',
+              text: 'Log out',
               onPressed: () async {
                 if (await _confirmSignOut()) {
                   await _authService.signOut();
                 }
               },
-              leftIcon: const Icon(Icons.logout, color: Colors.white),
+              leftIcon: const Icon(Icons.logout,),
             ),
 
             const SizedBox(height: 40),
