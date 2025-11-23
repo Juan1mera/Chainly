@@ -28,12 +28,14 @@ class _CustomNumberFieldState extends State<CustomNumberField>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
-  bool _isUpdating = false;
+  String _lastValid = ''; // Guardamos el último valor válido
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController();
+    _lastValid = _controller.text;
+
     _controller.addListener(_onTextChanged);
 
     _animationController = AnimationController(
@@ -57,8 +59,7 @@ class _CustomNumberFieldState extends State<CustomNumberField>
     hasFocus ? _animationController.forward() : _animationController.reverse();
   }
 
-  // FORMATEO MANUAL: solo enteros con separador de miles
-  String _formatInteger(int value) {
+  String _formatNumber(int value) {
     return value.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (match) => '${match.group(1)}.',
@@ -74,33 +75,36 @@ class _CustomNumberFieldState extends State<CustomNumberField>
   }
 
   void _onTextChanged() {
-    if (_isUpdating) return;
-
     final text = _controller.text;
-    final clean = text.replaceAll(RegExp(r'[^\d]'), ''); // solo dígitos
+    final clean = text.replaceAll(RegExp(r'[^\d]'), ''); // Solo números
 
+    // Si está vacío
     if (clean.isEmpty) {
+      _lastValid = '';
       widget.onChanged?.call(0.0);
       return;
     }
 
     final intValue = int.tryParse(clean) ?? 0;
-    final formatted = _formatInteger(intValue);
+    final formatted = _formatNumber(intValue);
 
-    _isUpdating = true;
-    _controller.text = formatted;
+    // Solo actualizamos si el texto cambió realmente
+    if (formatted != _lastValid) {
+      _lastValid = formatted;
 
-    // Mantener cursor al final
-    _controller.selection = TextSelection.collapsed(offset: formatted.length);
+      // Actualizamos el texto SIN disparar otro listener innecesario
+      _controller.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+        composing: TextRange.empty,
+      );
 
-    _isUpdating = false;
-    widget.onChanged?.call(intValue.toDouble());
+      widget.onChanged?.call(intValue.toDouble());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final Color baseColor = AppColors.black;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: AnimatedBuilder(
@@ -110,7 +114,7 @@ class _CustomNumberFieldState extends State<CustomNumberField>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(36),
-              border: Border.all(width: 2, color: AppColors.black)
+              border: Border.all(width: 2, color: AppColors.black),
             ),
             child: Focus(
               onFocusChange: _onFocusChange,
@@ -118,17 +122,17 @@ class _CustomNumberFieldState extends State<CustomNumberField>
                 controller: _controller,
                 keyboardType: TextInputType.number,
                 inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly, // Solo dígitos
+                  FilteringTextInputFormatter.digitsOnly,
                 ],
                 style: const TextStyle(
                   color: AppColors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  fontFamily: AppFonts.clashDisplay
+                  fontFamily: AppFonts.clashDisplay,
                 ),
                 decoration: InputDecoration(
                   hintText: widget.hintText ?? '0',
-                  hintStyle: TextStyle(color: baseColor.withValues(alpha: .6)),
+                  hintStyle: TextStyle(color: AppColors.black.withValues(alpha: 0.6)),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -141,13 +145,13 @@ class _CustomNumberFieldState extends State<CustomNumberField>
                         color: AppColors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        fontFamily: AppFonts.clashDisplay
+                        fontFamily: AppFonts.clashDisplay,
                       ),
                     ),
                   ),
                   prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                 ),
-                onChanged: (_) => _onTextChanged(),
+                // Quitamos onChanged manual, el listener ya lo maneja todo
               ),
             ),
           ),
