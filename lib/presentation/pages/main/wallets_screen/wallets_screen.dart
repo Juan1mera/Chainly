@@ -99,6 +99,7 @@ Future<void> _showCreateWalletModal() async {
         text: 'Create',
         onPressed: _isLoading ? null : _createWallet,
         isLoading: _isLoading,
+        backgroundColor: AppColors.purple,
       ),
     ],
   );
@@ -122,7 +123,7 @@ Future<void> _showCreateWalletModal() async {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(36),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: sel ? AppColors.black : Colors.transparent,
             width: 2,

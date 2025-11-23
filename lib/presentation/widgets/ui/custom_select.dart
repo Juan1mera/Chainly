@@ -103,15 +103,14 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
         top: offset.dy + size.height + 4,
         width: size.width - 32,
         child: Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(12),
+          elevation: 0,
           color: AppColors.white,
           child: Container(
             constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
               color: AppColors.white,
               border: Border.all(color: baseColor.withValues(alpha: 0.3), width: 1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: ListView.builder(
               padding: EdgeInsets.zero,
@@ -123,7 +122,7 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
 
                 return InkWell(
                   onTap: () {
-                    widget.onChanged(item); // Llama al padre
+                    widget.onChanged(item); 
                     _closeDropdown();
                   },
                   child: Container(
@@ -167,63 +166,60 @@ class CustomSelectState<T> extends State<CustomSelect<T>> with TickerProviderSta
   Widget build(BuildContext context) {
     final baseColor = _effectiveColor;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: CompositedTransformTarget(
-        link: _layerLink,
-        child: AnimatedBuilder(
-          animation: _scaleAnimation,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(36),
-                  border: Border.all(width: 2, color: AppColors.black)
-                ),
-                child: InkWell(
-                  onTap: _toggleDropdown,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      left: _effectiveIcon != null ? 8 : 16,
-                      right: 16,
-                      top: 16,
-                      bottom: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        if (_effectiveIcon != null)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 12, right: 8),
-                            child: Icon(_effectiveIcon, color: baseColor, size: 24),
-                          ),
-                        Expanded(
-                          child: Text(
-                            widget.selectedItem != null
-                                ? widget.getDisplayText(widget.selectedItem as T)
-                                : widget.hintText ?? widget.label,
-                            style: TextStyle(
-                              color: widget.selectedItem != null ? AppColors.black : baseColor,
-                              fontSize: widget.selectedItem != null ? 16 : 14,
-                              fontWeight: widget.selectedItem != null ? FontWeight.w500 : FontWeight.w400,
-                              fontFamily: AppFonts.clashDisplay
-                            ),
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(width: 2, color: AppColors.black)
+              ),
+              child: InkWell(
+                onTap: _toggleDropdown,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: _effectiveIcon != null ? 8 : 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      if (_effectiveIcon != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12, right: 8),
+                          child: Icon(_effectiveIcon, color: baseColor, size: 24),
+                        ),
+                      Expanded(
+                        child: Text(
+                          widget.selectedItem != null
+                              ? widget.getDisplayText(widget.selectedItem as T)
+                              : widget.hintText ?? widget.label,
+                          style: TextStyle(
+                            color: widget.selectedItem != null ? AppColors.black : baseColor,
+                            fontSize: widget.selectedItem != null ? 16 : 14,
+                            fontWeight: widget.selectedItem != null ? FontWeight.w500 : FontWeight.w400,
+                            fontFamily: AppFonts.clashDisplay
                           ),
                         ),
-                        AnimatedRotation(
-                          turns: _isOpen ? 0.5 : 0.0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Icon(Icons.keyboard_arrow_down, color: baseColor, size: 24),
-                        ),
-                      ],
-                    ),
+                      ),
+                      AnimatedRotation(
+                        turns: _isOpen ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(Icons.keyboard_arrow_down, color: baseColor, size: 24),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

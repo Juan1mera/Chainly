@@ -105,54 +105,51 @@ class _CustomNumberFieldState extends State<CustomNumberField>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(36),
-              border: Border.all(width: 2, color: AppColors.black),
-            ),
-            child: Focus(
-              onFocusChange: _onFocusChange,
-              child: TextField(
-                controller: _controller,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                style: const TextStyle(
-                  color: AppColors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: AppFonts.clashDisplay,
-                ),
-                decoration: InputDecoration(
-                  hintText: widget.hintText ?? '0',
-                  hintStyle: TextStyle(color: AppColors.black.withValues(alpha: 0.6)),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  prefix: Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 8),
-                    child: Text(
-                      _getCurrencySymbol(widget.currency),
-                      style: const TextStyle(
-                        color: AppColors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: AppFonts.clashDisplay,
-                      ),
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) => Transform.scale(
+        scale: _scaleAnimation.value,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(width: 2, color: AppColors.black),
+          ),
+          child: Focus(
+            onFocusChange: _onFocusChange,
+            child: TextField(
+              controller: _controller,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              style: const TextStyle(
+                color: AppColors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                fontFamily: AppFonts.clashDisplay,
+              ),
+              decoration: InputDecoration(
+                hintText: widget.hintText ?? '0',
+                hintStyle: TextStyle(color: AppColors.black.withValues(alpha: 0.6)),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                prefix: Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 8),
+                  child: Text(
+                    _getCurrencySymbol(widget.currency),
+                    style: const TextStyle(
+                      color: AppColors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: AppFonts.clashDisplay,
                     ),
                   ),
-                  prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                 ),
-                // Quitamos onChanged manual, el listener ya lo maneja todo
+                prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
               ),
+              // Quitamos onChanged manual, el listener ya lo maneja todo
             ),
           ),
         ),
