@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
-import 'package:wallet_app/core/utils/number_format.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/services/auth_service.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/fonts.dart';
+import 'package:chainly/core/utils/number_format.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/services/auth_service.dart';
 
 class WalletsHomeSection extends StatefulWidget {
   final List<Wallet> wallets;

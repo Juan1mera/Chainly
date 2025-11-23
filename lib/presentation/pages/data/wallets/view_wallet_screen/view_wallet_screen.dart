@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/models/transaction_model.dart';
-import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/transaction_list_section.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_options_section.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/components/wallet_section.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_header.dart';
-import 'package:wallet_app/services/category_service.dart';
-import 'package:wallet_app/services/transaction_service.dart';
-import 'package:wallet_app/services/wallet_service.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/models/transaction_model.dart';
+import 'package:chainly/models/category_model.dart';
+import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/components/transaction_list_section.dart';
+import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/components/wallet_options_section.dart';
+import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/components/wallet_section.dart';
+import 'package:chainly/presentation/widgets/ui/custom_header.dart';
+import 'package:chainly/services/category_service.dart';
+import 'package:chainly/services/transaction_service.dart';
+import 'package:chainly/services/wallet_service.dart';
 
 class ViewWalletScreen extends ConsumerStatefulWidget {
   final int walletId;

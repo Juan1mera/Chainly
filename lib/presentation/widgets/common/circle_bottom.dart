@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/fonts.dart';
 
 class CircleBottom extends StatelessWidget {
   final String text;

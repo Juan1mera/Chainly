@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:icons_plus/icons_plus.dart'; 
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/models/transaction_with_details.dart';
-import 'package:wallet_app/presentation/pages/main/home_screen/components/transactions_home_section.dart';
-import 'package:wallet_app/presentation/pages/main/home_screen/components/wallets_home_section.dart';
-import 'package:wallet_app/providers/wallet_provider.dart';
-import 'package:wallet_app/services/transaction_service.dart';
-import 'package:wallet_app/services/category_service.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/models/category_model.dart';
+import 'package:chainly/models/transaction_with_details.dart';
+import 'package:chainly/presentation/pages/main/home_screen/components/transactions_home_section.dart';
+import 'package:chainly/presentation/pages/main/home_screen/components/wallets_home_section.dart';
+import 'package:chainly/providers/wallet_provider.dart';
+import 'package:chainly/services/transaction_service.dart';
+import 'package:chainly/services/category_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {  
   const HomeScreen({super.key});

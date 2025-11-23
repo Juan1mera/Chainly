@@ -1,12 +1,12 @@
 // lib/main_drawer_nav.dart
 import 'package:flutter/material.dart';
-import 'package:wallet_app/presentation/pages/main/categories_screen/categories_screen.dart';
-import 'package:wallet_app/presentation/pages/main/home_screen/components/header_home_section.dart';
-import 'package:wallet_app/presentation/pages/main/home_screen/home_screen.dart';
-import 'package:wallet_app/presentation/pages/main/wallets_screen/wallets_screen.dart';
-import 'package:wallet_app/presentation/pages/main/stats_screen/stats_screen.dart';
-import 'package:wallet_app/presentation/pages/main/profile_screen/profile_screen.dart';
-import 'package:wallet_app/presentation/widgets/navigation/app_drawer.dart';
+import 'package:chainly/presentation/pages/main/categories_screen/categories_screen.dart';
+import 'package:chainly/presentation/pages/main/home_screen/components/header_home_section.dart';
+import 'package:chainly/presentation/pages/main/home_screen/home_screen.dart';
+import 'package:chainly/presentation/pages/main/wallets_screen/wallets_screen.dart';
+import 'package:chainly/presentation/pages/main/stats_screen/stats_screen.dart';
+import 'package:chainly/presentation/pages/main/profile_screen/profile_screen.dart';
+import 'package:chainly/presentation/widgets/navigation/app_drawer.dart';
 
 class MainDrawerNav extends StatefulWidget {
   const MainDrawerNav({super.key});

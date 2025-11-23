@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wallet_app/presentation/widgets/navigation/main_drawer_nav.dart';
+import 'package:chainly/presentation/widgets/navigation/main_drawer_nav.dart';
 import '../../pages/auth/welcome_screen.dart';
 
 class AuthGate extends StatelessWidget {

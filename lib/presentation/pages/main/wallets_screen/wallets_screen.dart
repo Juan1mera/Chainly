@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/core/constants/currencies.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/presentation/widgets/common/wallet_card.dart';
-import 'package:wallet_app/presentation/pages/data/wallets/view_wallet_screen/view_wallet_screen.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_modal.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_number_field.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_select.dart';
-import 'package:wallet_app/providers/wallet_provider.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/currencies.dart';
+import 'package:chainly/core/constants/fonts.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/presentation/widgets/common/wallet_card.dart';
+import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/view_wallet_screen.dart';
+import 'package:chainly/presentation/widgets/ui/custom_button.dart';
+import 'package:chainly/presentation/widgets/ui/custom_modal.dart';
+import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
+import 'package:chainly/presentation/widgets/ui/custom_number_field.dart';
+import 'package:chainly/presentation/widgets/ui/custom_select.dart';
+import 'package:chainly/providers/wallet_provider.dart';
 
 class WalletsScreen extends ConsumerStatefulWidget {
   const WalletsScreen({super.key});

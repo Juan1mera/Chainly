@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:wallet_app/core/database/db.dart';
-import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/models/transaction_model.dart';
-import 'package:wallet_app/models/transaction_with_details.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/services/auth_service.dart';
-import 'package:wallet_app/services/category_service.dart';
+import 'package:chainly/core/database/db.dart';
+import 'package:chainly/models/category_model.dart';
+import 'package:chainly/models/transaction_model.dart';
+import 'package:chainly/models/transaction_with_details.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/services/auth_service.dart';
+import 'package:chainly/services/category_service.dart';
 
 class TransactionService {
   final Db _db = Db();

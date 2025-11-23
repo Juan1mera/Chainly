@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:wallet_app/presentation/widgets/common/dashed_border.dart';
-import 'package:wallet_app/core/constants/colors.dart';
+import 'package:chainly/presentation/widgets/common/dashed_border.dart';
+import 'package:chainly/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomImageSelector extends StatelessWidget {

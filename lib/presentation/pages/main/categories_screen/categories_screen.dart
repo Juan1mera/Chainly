@@ -1,12 +1,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/presentation/pages/main/categories_screen/components/category_card.dart';
-import 'package:wallet_app/presentation/pages/main/categories_screen/components/category_edit_dialog.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
-import 'package:wallet_app/services/category_service.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/models/category_model.dart';
+import 'package:chainly/presentation/pages/main/categories_screen/components/category_card.dart';
+import 'package:chainly/presentation/pages/main/categories_screen/components/category_edit_dialog.dart';
+import 'package:chainly/presentation/widgets/ui/custom_button.dart';
+import 'package:chainly/services/category_service.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});

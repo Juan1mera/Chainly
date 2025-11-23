@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_screen/create_transaction_screen.dart';
-import 'package:wallet_app/presentation/pages/data/transactions/create_transaction_convert_screen/create_transaction_convert_screen.dart';
-import 'package:wallet_app/presentation/widgets/common/circle_bottom.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/presentation/pages/data/transactions/create_transaction_screen/create_transaction_screen.dart';
+import 'package:chainly/presentation/pages/data/transactions/create_transaction_convert_screen/create_transaction_convert_screen.dart';
+import 'package:chainly/presentation/widgets/common/circle_bottom.dart';
 
 class WalletOptionsSection extends ConsumerWidget {
   final Wallet wallet;

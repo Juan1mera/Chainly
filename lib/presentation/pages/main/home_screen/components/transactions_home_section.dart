@@ -1,12 +1,12 @@
 // transactions_home_section.dart
 import 'package:flutter/material.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
-import 'package:wallet_app/core/utils/number_format.dart';
-import 'package:wallet_app/models/category_model.dart'; 
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/fonts.dart';
+import 'package:chainly/core/utils/number_format.dart';
+import 'package:chainly/models/category_model.dart'; 
 import 'dart:ui';
 
-import 'package:wallet_app/models/transaction_with_details.dart';
+import 'package:chainly/models/transaction_with_details.dart';
 
 class TransactionsHomeSection extends StatelessWidget {
   final List<TransactionWithDetails> transactions;

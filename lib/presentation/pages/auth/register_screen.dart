@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/presentation/pages/auth/login_screen.dart';
-import 'package:wallet_app/presentation/widgets/navigation/main_drawer_nav.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_button.dart';
-import 'package:wallet_app/presentation/widgets/ui/custom_text_field.dart';
-import 'package:wallet_app/services/auth_service.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/presentation/pages/auth/login_screen.dart';
+import 'package:chainly/presentation/widgets/navigation/main_drawer_nav.dart';
+import 'package:chainly/presentation/widgets/ui/custom_button.dart';
+import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
+import 'package:chainly/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -161,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     const Text(
-                      'Regístrate en wallet_app',
+                      'Regístrate en chainly',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w700,

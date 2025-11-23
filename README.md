@@ -1,4 +1,4 @@
-# wallet_app
+# chainly
 
 A new Flutter project.
 

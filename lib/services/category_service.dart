@@ -1,5 +1,5 @@
-import 'package:wallet_app/core/database/db.dart';
-import 'package:wallet_app/models/category_model.dart';
+import 'package:chainly/core/database/db.dart';
+import 'package:chainly/models/category_model.dart';
 
 class CategoryService {
   final Db _db = Db();

@@ -1,6 +1,6 @@
-import 'package:wallet_app/models/transaction_model.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/models/category_model.dart';
+import 'package:chainly/models/transaction_model.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/models/category_model.dart';
 
 class TransactionWithDetails {
   final Transaction transaction;

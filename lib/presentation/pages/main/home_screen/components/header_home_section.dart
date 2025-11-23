@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:wallet_app/core/constants/colors.dart';
+import 'package:chainly/core/constants/colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wallet_app/presentation/pages/main/profile_screen/profile_screen.dart';
+import 'package:chainly/presentation/pages/main/profile_screen/profile_screen.dart';
 
 class HeaderHomeSection extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onMenuPress;

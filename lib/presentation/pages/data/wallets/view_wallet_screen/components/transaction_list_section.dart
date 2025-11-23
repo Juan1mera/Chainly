@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
-import 'package:wallet_app/models/transaction_model.dart';
-import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/presentation/widgets/common/transaction_card_simple.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/fonts.dart';
+import 'package:chainly/models/transaction_model.dart';
+import 'package:chainly/models/category_model.dart';
+import 'package:chainly/presentation/widgets/common/transaction_card_simple.dart';
 
 class TransactionListSection extends StatelessWidget {
   final List<Transaction> transactions;

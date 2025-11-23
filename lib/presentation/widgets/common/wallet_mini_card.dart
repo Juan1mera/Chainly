@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
-import 'package:wallet_app/core/utils/number_format.dart';
-import 'package:wallet_app/models/wallet_model.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/fonts.dart';
+import 'package:chainly/core/utils/number_format.dart';
+import 'package:chainly/models/wallet_model.dart';
 
 class WalletMiniCard extends StatelessWidget {
   final Wallet wallet;

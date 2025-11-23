@@ -1,8 +1,8 @@
 // lib/providers/wallet_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:wallet_app/models/wallet_model.dart';
-import 'package:wallet_app/services/wallet_service.dart';
+import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/services/wallet_service.dart';
 
 final walletServiceProvider = Provider((ref) => WalletService());
 

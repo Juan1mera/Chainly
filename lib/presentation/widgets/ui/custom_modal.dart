@@ -1,6 +1,6 @@
-import 'package:wallet_app/core/constants/colors.dart';
+import 'package:chainly/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:wallet_app/core/constants/fonts.dart';
+import 'package:chainly/core/constants/fonts.dart';
 
 class CustomModal extends StatelessWidget {
   final String title;

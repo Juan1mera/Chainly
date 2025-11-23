@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wallet_app/core/constants/colors.dart';
+import 'package:chainly/core/constants/colors.dart';
 
 class CategoryEditDialog extends StatefulWidget {
   final TextEditingController controller;

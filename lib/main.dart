@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wallet_app/core/constants/colors.dart';
-import 'package:wallet_app/presentation/widgets/auth/auth_gate.dart';
+import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/presentation/widgets/auth/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,5 +1,5 @@
-import 'package:wallet_app/models/category_model.dart';
-import 'package:wallet_app/models/transaction_model.dart';
+import 'package:chainly/models/category_model.dart';
+import 'package:chainly/models/transaction_model.dart';
 
 class TransactionWithCategory {
   final Transaction transaction;
