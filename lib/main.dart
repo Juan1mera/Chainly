@@ -1,4 +1,5 @@
 // lib/main.dart
+import 'package:chainly/core/constants/fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chainly',
       theme: ThemeData(
+        fontFamily: AppFonts.clashDisplay,
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.purple),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.transparent,
