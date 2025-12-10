@@ -138,6 +138,13 @@ class AppDrawer extends StatelessWidget {
             title: 'Profile',
             isSelected: currentIndex == 4,
           ),
+          _buildDrawerItem(
+            context,
+            index: 5,
+            icon: Icons.settings,
+            title: 'Settings',
+            isSelected: currentIndex == 5,
+          ),
 
           const Spacer(),
 

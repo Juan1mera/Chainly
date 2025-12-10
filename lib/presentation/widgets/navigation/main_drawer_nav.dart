@@ -1,4 +1,5 @@
 // lib/main_drawer_nav.dart
+import 'package:chainly/presentation/pages/main/settings_screen/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chainly/presentation/pages/main/categories_screen/categories_screen.dart';
 import 'package:chainly/presentation/pages/main/home_screen/components/header_home_section.dart';
@@ -24,6 +25,7 @@ class _MainDrawerNavState extends State<MainDrawerNav> {
     StatsScreen(),
     CategoriesScreen(),
     ProfileScreen(),
+    SettingsScreen(),
   ];
 
   void _onItemTapped(int index) {
