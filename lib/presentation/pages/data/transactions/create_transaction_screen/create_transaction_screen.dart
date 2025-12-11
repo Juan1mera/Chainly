@@ -184,7 +184,6 @@ class _CreateTransactionScreenState extends ConsumerState<CreateTransactionScree
                     child: Column(
                       children: [
                         const CustomHeader(),
-                        const SizedBox(height: 20),
 
                         if (_selectedWallet != null) ...[
                           WalletMiniCard(wallet: _selectedWallet!),

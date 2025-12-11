@@ -238,39 +238,41 @@ Future<void> _showCreateWalletModal() async {
           error: (err, _) => Center(child: Text('Error: $err')),
           data: (wallets) {
             if (wallets.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 200),
-                  Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.wallet,
-                          size: 90,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          "You don't have wallets yet",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w600,
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.wallet,
+                            size: 90,
+                            color: Colors.grey.shade400,
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Tap the + button to create your first wallet',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
+                          const SizedBox(height: 24),
+                          const Text(
+                            "You don't have wallets yet",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(
+                            'Tap the + button to create your first wallet',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }
 
