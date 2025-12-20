@@ -245,37 +245,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               const SizedBox(height: 40),
               const Text(
-                'Account',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 20),
-
-              CustomButton(
-                text: 'Change Password',
-                onPressed: _changePassword,
-                leftIcon: const Icon(Icons.lock_outline),
-              ),
-              const SizedBox(height: 12),
-
-              CustomButton(
-                text: 'Log Out',
-                onPressed: _signOut,
-                isLoading: _isLoading,
-                leftIcon: const Icon(Icons.logout),
-                backgroundColor: Colors.grey.withValues(alpha: 0.4),
-              ),
-              const SizedBox(height: 12),
-
-              CustomButton(
-                text: 'Delete Account',
-                onPressed: _deleteAccount,
-                isLoading: _isLoading,
-                leftIcon: const Icon(Icons.delete_forever, color: Colors.red),
-                backgroundColor: Colors.red.withValues(alpha: 0.25),
-              ),
-
-              const SizedBox(height: 60),
-              const Text(
                 'Support the Project',
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
               ),
@@ -309,6 +278,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: _launchBugReport,
                 leftIcon: const Icon(BoxIcons.bx_bug),
               ),
+
+
+
+
+              const SizedBox(height: 40),
+              const Text(
+                'Account',
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w400),
+              ),
+
+              CustomButton(
+                text: 'Change Password',
+                onPressed: _changePassword,
+                leftIcon: const Icon(Icons.lock_outline),
+              ),
+              const SizedBox(height: 12),
+
+              CustomButton(
+                text: 'Log Out',
+                onPressed: _signOut,
+                isLoading: _isLoading,
+                leftIcon: const Icon(Icons.logout),
+                backgroundColor: Colors.grey.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 42),
+
+              const Text(
+                'Danger Zone!',
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w400, color: AppColors.redDark),
+              ),
+              CustomButton(
+                text: 'Delete Account',
+                onPressed: _deleteAccount,
+                isLoading: _isLoading,
+                leftIcon: const Icon(Icons.delete_forever, color: Colors.red),
+                backgroundColor: Colors.red.withValues(alpha: 0.25),
+              ),
+
+              const SizedBox(height: 60),
             ],
           ),
         ),
