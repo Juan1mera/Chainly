@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/fonts.dart';
-import 'package:chainly/models/category_model.dart';
+import 'package:chainly/data/models/category_model.dart';
 
 class CategoryCard extends StatelessWidget {
   final Category category;

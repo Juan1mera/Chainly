@@ -1,10 +1,8 @@
-import 'package:chainly/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/currencies.dart';
 import 'package:chainly/core/constants/fonts.dart';
-import 'package:chainly/models/wallet_model.dart';
 import 'package:chainly/presentation/widgets/common/wallet_card.dart';
 import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/view_wallet_screen.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
@@ -12,7 +10,8 @@ import 'package:chainly/presentation/widgets/ui/custom_modal.dart';
 import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
 import 'package:chainly/presentation/widgets/ui/custom_number_field.dart';
 import 'package:chainly/presentation/widgets/ui/custom_select.dart';
-import 'package:chainly/providers/wallet_provider.dart';
+import 'package:chainly/domain/providers/wallet_provider.dart';
+import 'package:chainly/domain/providers/connectivity_provider.dart';
 
 class WalletsScreen extends ConsumerStatefulWidget {
   const WalletsScreen({super.key});
@@ -23,102 +22,109 @@ class WalletsScreen extends ConsumerStatefulWidget {
 
 class _WalletsScreenState extends ConsumerState<WalletsScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final AuthService _authService = AuthService();
-
 
   String _selectedCurrency = 'USD';
   double _initialBalance = 0.0;
   String _selectedType = 'cash';
   String _selectedColor = AppColors.walletColors[0];
-  bool _isFavorite = false;
-  bool _isLoading = false;
-
+  
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
   }
 
-Future<void> _showCreateWalletModal() async {
-  _nameController.clear();
-  _selectedCurrency = 'USD';
-  _initialBalance = 0.0;
-  _selectedType = 'cash';
-  _selectedColor = AppColors.walletColors[0];
-  _isFavorite = false;
+  Future<void> _showCreateWalletModal() async {
+    // Reset valores
+    _nameController.clear();
+    _selectedCurrency = 'USD';
+    _initialBalance = 0.0;
+    _selectedType = 'cash';
+    _selectedColor = AppColors.walletColors[0];
 
-  showCustomModal(
-    context: context,
-    title: 'Add Wallet',
-    heightFactor: 0.9,
-    isScrollControlled: true,        
-    resizeToAvoidBottomInset: true,  
-    child: StatefulBuilder(
-      builder: (context, setModalState) {
-        return GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, 
-              children: [
-                CustomTextField(
-                  controller: _nameController,
-                  hintText: 'Ej: Efectivo, Nubank, Ahorros',
-                  icon: Icons.wallet,
-                ),
-                const SizedBox(height: 20),
-                CustomSelect<String>(
-                  label: 'Moneda',
-                  items: Currencies.codes,
-                  selectedItem: _selectedCurrency,
-                  getDisplayText: (code) => code,
-                  onChanged: (val) => setModalState(() => _selectedCurrency = val!),
-                  dynamicIcon: (code) => Currencies.getIcon(code!),
-                ),
-                const SizedBox(height: 20),
-                CustomNumberField(
-                  currency: _selectedCurrency,
-                  hintText: '0.00',
-                  onChanged: (value) => setModalState(() => _initialBalance = value),
-                ),
-                const SizedBox(height: 24),
-                _buildTypeSelector(setModalState),
-                const SizedBox(height: 28),
-                _buildColorSelector(setModalState),
-
-                const SizedBox(height: 20),
-              ],
+    showCustomModal(
+      context: context,
+      title: 'Add Wallet',
+      heightFactor: 0.9,
+      isScrollControlled: true,
+      resizeToAvoidBottomInset: true,
+      child: StatefulBuilder(
+        builder: (context, setModalState) {
+          return GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomTextField(
+                    controller: _nameController,
+                    hintText: 'Ej: Efectivo, Nubank, Ahorros',
+                    icon: Icons.wallet,
+                  ),
+                  const SizedBox(height: 20),
+                  CustomSelect<String>(
+                    label: 'Moneda',
+                    items: Currencies.codes,
+                    selectedItem: _selectedCurrency,
+                    getDisplayText: (code) => code,
+                    onChanged: (val) =>
+                        setModalState(() => _selectedCurrency = val!),
+                    dynamicIcon: (code) => Currencies.getIcon(code!),
+                  ),
+                  const SizedBox(height: 20),
+                  CustomNumberField(
+                    currency: _selectedCurrency,
+                    hintText: '0.00',
+                    onChanged: (value) =>
+                        setModalState(() => _initialBalance = value),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTypeSelector(setModalState),
+                  const SizedBox(height: 28),
+                  _buildColorSelector(setModalState),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    ),
-    actions: [
-      CustomButton(text: 'Cancel', onPressed: () => Navigator.pop(context)),
-      CustomButton(
-        text: 'Create',
-        onPressed: _isLoading ? null : _createWallet,
-        isLoading: _isLoading,
-        backgroundColor: AppColors.purple,
+          );
+        },
       ),
-    ],
-  );
-}
+      actions: [
+        CustomButton(
+          text: 'Cancel',
+          onPressed: () => Navigator.pop(context),
+        ),
+        Consumer(
+          builder: (context, ref, child) {
+            final notifierState = ref.watch(walletNotifierProvider);
+            final isLoading = notifierState.isLoading;
+
+            return CustomButton(
+              text: 'Create',
+              onPressed: isLoading ? null : _createWallet,
+              isLoading: isLoading,
+              backgroundColor: AppColors.purple,
+            );
+          },
+        ),
+      ],
+    );
+  }
 
   Widget _buildTypeSelector(StateSetter s) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 25),
-    child: Row(
-      children: [
-        Expanded(child: _typeTile('cash', 'Efectivo', Icons.payments, s)),
-        const SizedBox(width: 12),
-        Expanded(child: _typeTile('bank', 'Banco', Icons.account_balance, s)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: Row(
+          children: [
+            Expanded(
+                child: _typeTile('cash', 'Efectivo', Icons.payments, s)),
+            const SizedBox(width: 12),
+            Expanded(
+                child: _typeTile('bank', 'Banco', Icons.account_balance, s)),
+          ],
+        ),
+      );
 
   Widget _typeTile(String v, String l, IconData i, StateSetter s) {
     final sel = _selectedType == v;
@@ -152,33 +158,34 @@ Future<void> _showCreateWalletModal() async {
   }
 
   Widget _buildColorSelector(StateSetter s) => Center(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        children: AppColors.walletColors.map((c) {
-          final sel = _selectedColor == c;
-          return GestureDetector(
-            onTap: () => s(() => _selectedColor = c),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Color(int.parse(c.replaceFirst('#', '0xFF'))),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: sel ? 4 : 0),
-              ),
-              child: sel
-                  ? const Icon(Icons.check, color: Colors.white, size: 28)
-                  : null,
-            ),
-          );
-        }).toList(),
-      ),
-    ),
-  );
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: AppColors.walletColors.map((c) {
+              final sel = _selectedColor == c;
+              return GestureDetector(
+                onTap: () => s(() => _selectedColor = c),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Color(int.parse(c.replaceFirst('#', '0xFF'))),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: Colors.white, width: sel ? 4 : 0),
+                  ),
+                  child: sel
+                      ? const Icon(Icons.check, color: Colors.white, size: 28)
+                      : null,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      );
 
   Future<void> _createWallet() async {
     if (_nameController.text.trim().isEmpty) {
@@ -188,59 +195,128 @@ Future<void> _showCreateWalletModal() async {
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    final wallet = Wallet(
-      userId: _authService.currentUserData?['id'], 
-      name: _nameController.text.trim(),
-      currency: _selectedCurrency,
-      balance: _initialBalance,
-      color: _selectedColor,
-      type: _selectedType,
-      isFavorite: _isFavorite,
-      isArchived: false,
-      iconBank: _selectedType == 'bank' ? Icons.account_balance : null,
-      createdAt: DateTime.now(),
-    );
+    final notifier = ref.read(walletNotifierProvider.notifier);
 
     try {
-      await ref.read(walletServiceProvider).createWallet(wallet);
-      if (mounted) {
+      final wallet = await notifier.createWallet(
+        name: _nameController.text.trim(),
+        color: _selectedColor,
+        currency: _selectedCurrency,
+        type: _selectedType,
+        balance: _initialBalance,
+      );
+
+      if (wallet != null && mounted) {
         Navigator.pop(context);
-        ref.read(walletsProvider.notifier).refresh();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('¡Cartera creada!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Cartera creada!')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final walletsAsync = ref.watch(walletsProvider);
+    // Usa el nuevo provider con filtros
+    final walletsAsync = ref.watch(
+      walletsProvider(const WalletFilters(includeArchived: false)),
+    );
+    
+    // Listener de conectividad para mostrar snackbar
+    ref.listen(connectivityStreamProvider, (previous, next) {
+      next.whenData((isOnline) {
+        // Corrección: previous.value es nullable, check previo
+        final preValue = previous?.value ?? true;
+        
+        if (isOnline && !preValue) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Conexión restaurada. Sincronizando...'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      });
+    });
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mis Wallets'),
+        actions: [
+          // Indicador de conectividad
+          Consumer(
+            builder: (context, ref, child) {
+              final connectivityAsync = ref.watch(connectivityStreamProvider);
+              
+              return connectivityAsync.when(
+                data: (isOnline) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isOnline ? Icons.cloud_done : Icons.cloud_off,
+                        size: 20,
+                        color: isOnline ? Colors.green : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isOnline ? 'Online' : 'Offline',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isOnline ? Colors.green : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              );
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.black,
         onPressed: _showCreateWalletModal,
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
       body: RefreshIndicator(
-        onRefresh: () => ref.read(walletsProvider.notifier).refresh(),
+        onRefresh: () async {
+          // Invalida el provider para forzar recarga
+          ref.invalidate(walletsProvider);
+          
+          // Espera a que se complete
+          await ref.read(
+            walletsProvider(const WalletFilters(forceRefresh: true)).future,
+          );
+        },
         color: AppColors.purple,
         child: walletsAsync.when(
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.purple),
           ),
-          error: (err, _) => Center(child: Text('Error: $err')),
+          error: (err, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text('Error: $err'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(walletsProvider),
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          ),
           data: (wallets) {
             if (wallets.isEmpty) {
               return Padding(
@@ -250,6 +326,7 @@ Future<void> _showCreateWalletModal() async {
                   children: [
                     Center(
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.wallet,
@@ -292,7 +369,7 @@ Future<void> _showCreateWalletModal() async {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ViewWalletScreen(walletId: wallet.id!),
+                        builder: (_) => ViewWalletScreen(walletId: wallet.id), // Aquí wallet.id ya es String
                       ),
                     ),
                     child: WalletCard(wallet: wallet),

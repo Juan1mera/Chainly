@@ -59,6 +59,11 @@ dependencies:
   url_launcher: ^6.2.0
   fl_chart: ^0.68.0
 
+  connectivity_plus: ^5.0.2
+  
+  # Utilidades
+  uuid: ^4.2.1  # Para generar UUIDs
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

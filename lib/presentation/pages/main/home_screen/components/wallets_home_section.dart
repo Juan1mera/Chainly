@@ -3,8 +3,8 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/fonts.dart';
 import 'package:chainly/core/utils/number_format.dart';
-import 'package:chainly/models/wallet_model.dart';
-import 'package:chainly/services/auth_service.dart';
+import 'package:chainly/data/models/wallet_model.dart';
+import 'package:chainly/data/services/auth_service.dart';
 
 class WalletsHomeSection extends StatefulWidget {
   final List<Wallet> wallets;

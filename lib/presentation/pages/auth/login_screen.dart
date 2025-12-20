@@ -6,7 +6,7 @@ import 'package:chainly/presentation/pages/auth/register_screen.dart';
 import 'package:chainly/presentation/widgets/navigation/main_drawer_nav.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
 import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
-import 'package:chainly/services/auth_service.dart';
+import 'package:chainly/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

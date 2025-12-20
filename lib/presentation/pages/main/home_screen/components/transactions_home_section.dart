@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/fonts.dart';
 import 'package:chainly/core/utils/number_format.dart';
-import 'package:chainly/models/category_model.dart';
+import 'package:chainly/data/models/category_model.dart';
 import 'dart:ui';
 
-import 'package:chainly/models/transaction_with_details.dart';
+import 'package:chainly/data/models/transaction_with_details.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TransactionsHomeSection extends StatelessWidget {
@@ -25,7 +25,8 @@ class TransactionsHomeSection extends StatelessWidget {
   });
 
   // Helper para buscar categoría por ID
-  Category? _getCategoryById(int categoryId) {
+  Category? _getCategoryById(String? categoryId) {
+    if (categoryId == null) return null;
     try {
       return categories.firstWhere((cat) => cat.id == categoryId);
     } catch (e) {
@@ -54,10 +55,14 @@ class TransactionsHomeSection extends StatelessWidget {
           final category =
               _getCategoryById(transaction.transaction.categoryId) ??
               Category(
+                id: 'temp',
                 name: transaction.transaction.type == 'expense'
                     ? 'Gasto'
                     : 'Ingreso',
-                userId: '${_user?.id}'
+                userId: '${_user?.id}',
+                type: transaction.transaction.type,
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
               ); 
 
           final rotation = (index % 2 == 0) ? -0.08 : 0.08;

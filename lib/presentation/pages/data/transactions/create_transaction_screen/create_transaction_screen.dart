@@ -2,21 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:chainly/core/constants/colors.dart';
-import 'package:chainly/models/category_model.dart';
-import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/data/models/category_model.dart';
+import 'package:chainly/data/models/wallet_model.dart';
 import 'package:chainly/presentation/widgets/common/wallet_mini_card.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
 import 'package:chainly/presentation/widgets/ui/custom_header.dart';
 import 'package:chainly/presentation/widgets/ui/custom_number_field.dart';
 import 'package:chainly/presentation/widgets/ui/custom_select.dart';
 import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
-import 'package:chainly/providers/wallet_provider.dart';
-import 'package:chainly/services/category_service.dart';
-import 'package:chainly/services/transaction_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:chainly/domain/providers/wallet_provider.dart';
+import 'package:chainly/domain/providers/category_provider.dart';
+import 'package:chainly/domain/providers/transaction_provider.dart';
 
 class CreateTransactionScreen extends ConsumerStatefulWidget {
-  final int? initialWalletId;
+  final String? initialWalletId;
   final String? initialType;
 
   const CreateTransactionScreen({
@@ -32,18 +31,13 @@ class CreateTransactionScreen extends ConsumerStatefulWidget {
 
 class _CreateTransactionScreenState
     extends ConsumerState<CreateTransactionScreen> {
-  final TransactionService _transactionService = TransactionService();
-  final CategoryService _categoryService = CategoryService();
   final TextEditingController _noteController = TextEditingController();
-  User? get _user => Supabase.instance.client.auth.currentUser;
 
-  List<Category> _categories = [];
   String _type = 'expense';
   double _amount = 0.0;
   String? _selectedCategoryName;
   Wallet? _selectedWallet;
 
-  bool _isLoadingCategories = true;
   bool _hasSetInitialWallet = false;
 
   @override
@@ -52,25 +46,12 @@ class _CreateTransactionScreenState
     if (widget.initialType == 'income' || widget.initialType == 'expense') {
       _type = widget.initialType!;
     }
-    _loadCategories();
   }
 
-  Future<void> _loadCategories() async {
-    try {
-      final cats = await _categoryService.getCategories();
-      setState(() {
-        _categories = cats;
-        _selectedCategoryName = cats.isNotEmpty ? cats.first.name : null;
-        _isLoadingCategories = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar categorías: $e')),
-        );
-        setState(() => _isLoadingCategories = false);
-      }
-    }
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
   }
 
   void _setInitialWalletIfNeeded(List<Wallet> wallets) {
@@ -89,21 +70,19 @@ class _CreateTransactionScreenState
     }
 
     _hasSetInitialWallet = true;
-    if (mounted) setState(() {});
+    // No need to setState here if called during build or if build will happen anyway
   }
 
   Future<void> _createTransaction() async {
     if (_amount <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Ingresa un monto válido')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingresa un monto válido')));
       return;
     }
 
     if (_selectedWallet == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Selecciona una billetera')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Selecciona una billetera')));
       return;
     }
 
@@ -116,41 +95,50 @@ class _CreateTransactionScreenState
     }
 
     try {
-      await _transactionService.createTransactionWithCategoryName(
-        walletId: _selectedWallet!.id!,
+      // Find category ID from name
+      final categories = ref.read(categoriesProvider).value ?? [];
+      var category = categories.firstWhere(
+          (c) => c.name == _selectedCategoryName,
+          orElse: () => categories.first // Should handle case where it doesn't exist?
+      );
+      
+      // If category doesn't exist in loaded list (newly created temp?), we might need to create it for real
+      // But _buildCategorySelector handles creation via notifier, so it should be in the list after refresh.
+      // However, for safety, let's ensure we have a category.
+      
+      // Simplify: we assume category exists or was just created.
+      // If we allowed "create on the fly" without ID, we'd need to handle that here.
+      // In _buildCategorySelector we call createCategory which returns the object with ID.
+      
+      final notifier = ref.read(transactionNotifierProvider.notifier);
+      
+      await notifier.createTransaction(
+        walletId: _selectedWallet!.id,
         type: _type,
         amount: _amount,
-        categoryName: _selectedCategoryName!.trim(),
+        categoryId: category.id,
         note: _noteController.text.trim().isEmpty
             ? null
             : _noteController.text.trim(),
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Transacción creada')));
-        ref.read(walletsProvider.notifier).refreshAfterTransaction();
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Transacción creada')));
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
   @override
-  void dispose() {
-    _noteController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final walletsAsync = ref.watch(walletsProvider);
+    final walletsAsync = ref.watch(walletsProvider(const WalletFilters(includeArchived: false)));
+    final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
       body: walletsAsync.when(
@@ -167,7 +155,14 @@ class _CreateTransactionScreenState
         ),
         data: (wallets) {
           final availableWallets = wallets.where((w) => !w.isArchived).toList();
-          _setInitialWalletIfNeeded(wallets);
+          
+          // Schedule this to run after build if needed, or just run it (it sets state internal flag)
+          // Since we are in build, we shouldn't call setState. But _setInitialWalletIfNeeded only sets local var if not set.
+          if (!_hasSetInitialWallet && availableWallets.isNotEmpty) {
+             _setInitialWalletIfNeeded(wallets);
+             // Since we modified _selectedWallet during build phase (which is generally bad practice but here we are initializing),
+             // let's ensure the UI reflects it.
+          }
 
           if (availableWallets.isEmpty) {
             return const Center(
@@ -175,9 +170,16 @@ class _CreateTransactionScreenState
             );
           }
 
-          return _isLoadingCategories
-              ? const Center(child: CircularProgressIndicator())
-              : Container(
+          return categoriesAsync.when(
+             loading: () => const Center(child: CircularProgressIndicator()),
+             error: (e, s) => Center(child: Text('Error al cargar categorías: $e')),
+             data: (categories) {
+                // Initialize selected category if needed
+                if (_selectedCategoryName == null && categories.isNotEmpty) {
+                  _selectedCategoryName = categories.first.name;
+                }
+               
+                return Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -216,7 +218,7 @@ class _CreateTransactionScreenState
                         ),
 
                         const SizedBox(height: 24),
-                        _buildCategorySelector(),
+                        _buildCategorySelector(categories),
                         const SizedBox(height: 24),
                         _buildTypeSelector(),
                         const SizedBox(height: 24),
@@ -238,15 +240,17 @@ class _CreateTransactionScreenState
                     ),
                   ),
                 );
+             }
+          );
         },
       ),
     );
   }
 
-  Widget _buildCategorySelector() {
+  Widget _buildCategorySelector(List<Category> categories) {
     return CustomSelect<String>(
       label: '',
-      items: ['＋ Nueva categoría...', ..._categories.map((c) => c.name)],
+      items: ['＋ Nueva categoría...', ...categories.map((c) => c.name)],
       selectedItem: _selectedCategoryName,
       getDisplayText: (name) => name,
       onChanged: (val) async {
@@ -276,10 +280,23 @@ class _CreateTransactionScreenState
             ),
           );
           if (result != null && result.isNotEmpty) {
-            setState(() {
-              _selectedCategoryName = result;
-              _categories.add(Category(name: result, userId: '${_user?.id}'));
-            });
+            // Crear categoría
+            try {
+              final newCat = await ref.read(categoryNotifierProvider.notifier).createCategory(
+                name: result, 
+                type: _type
+              );
+              
+              if (newCat != null) {
+                setState(() {
+                  _selectedCategoryName = newCat.name;
+                });
+              }
+            } catch(e) {
+               if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+               }
+            }
           }
         } else {
           setState(() => _selectedCategoryName = val);

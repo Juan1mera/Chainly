@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chainly/core/constants/colors.dart';
-import 'package:chainly/models/wallet_model.dart';
-import 'package:chainly/models/transaction_model.dart';
-import 'package:chainly/models/category_model.dart';
+import 'package:chainly/data/models/wallet_model.dart';
 import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/components/transaction_list_section.dart';
 import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/components/wallet_options_section.dart';
 import 'package:chainly/presentation/pages/data/wallets/view_wallet_screen/components/wallet_section.dart';
 import 'package:chainly/presentation/widgets/ui/custom_header.dart';
-import 'package:chainly/services/category_service.dart';
-import 'package:chainly/services/transaction_service.dart';
-import 'package:chainly/services/wallet_service.dart';
+import 'package:chainly/domain/providers/wallet_provider.dart';
+import 'package:chainly/domain/providers/transaction_provider.dart';
+import 'package:chainly/domain/providers/category_provider.dart';
 
 class ViewWalletScreen extends ConsumerStatefulWidget {
-  final int walletId;
+  final String walletId;
   const ViewWalletScreen({super.key, required this.walletId});
 
   @override
@@ -21,71 +19,174 @@ class ViewWalletScreen extends ConsumerStatefulWidget {
 }
 
 class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen> {
-  final WalletService _walletService = WalletService();
-  final TransactionService _transactionService = TransactionService();
-  final CategoryService _categoryService = CategoryService();
-
-  Wallet? _wallet;
-  List<Transaction> _transactions = [];
-  List<Category> _categories = [];
   String _filterType = 'all';
-  bool _isLoading = true;
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
+  Widget build(BuildContext context) {
+    // Watch providers
+    final walletAsync = ref.watch(walletByIdProvider(widget.walletId));
+    final transactionsAsync = ref.watch(transactionsByWalletProvider(widget.walletId));
+    final categoriesAsync = ref.watch(categoriesProvider);
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+    // Combine loading/error states if needed, or handle individually in UI
+    // Here we mainly depend on wallet being available
+    
+    return walletAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.purple)),
+      ),
+      error: (e, st) => Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text('Error: $e')),
+      ),
+      data: (wallet) {
+        if (wallet == null) {
+          return const Scaffold(
+            body: Center(child: Text('Cartera no encontrada')),
+          );
+        }
 
-    final walletFuture = _walletService.getWallets(includeArchived: true);
-    final categoriesFuture = _categoryService.getCategories();
+        final menuItems = <PopupMenuEntry<dynamic>>[
+          PopupMenuItem(
+            onTap: () => _toggleArchive(wallet),
+            child: Row(
+              children: [
+                Icon(wallet.isArchived ? Icons.unarchive : Icons.archive),
+                const SizedBox(width: 12),
+                Text(wallet.isArchived ? 'Desarchivar' : 'Archivar'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            onTap: () => _toggleFavorite(wallet),
+            child: Row(
+              children: [
+                Icon(
+                  wallet.isFavorite ? Icons.star : Icons.star_border,
+                  color: wallet.isFavorite ? AppColors.yellow : null,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  wallet.isFavorite
+                      ? 'Quitar de favoritos'
+                      : 'Añadir a favoritos',
+                ),
+              ],
+            ),
+          ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            onTap: () => _deleteWallet(wallet),
+            child: const Row(
+              children: [
+                Icon(Icons.delete_forever, color: AppColors.red),
+                SizedBox(width: 12),
+                Text('Eliminar cartera', style: TextStyle(color: AppColors.red)),
+              ],
+            ),
+          ),
+        ];
 
-    final results = await Future.wait([walletFuture, categoriesFuture]);
-    final wallets = results[0] as List<Wallet>;
-    final categories = results[1] as List<Category>;
-
-    if (!mounted) return;
-
-    setState(() {
-      _wallet = wallets.firstWhere((w) => w.id == widget.walletId);
-      _categories = categories;
-    });
-
-    await _loadTransactions();
-    if (mounted) setState(() => _isLoading = false);
-  }
-
-  Future<void> _loadTransactions() async {
-    final transactions = await _transactionService.getTransactionsByWallet(
-      widget.walletId,
-      type: _filterType == 'all' ? null : _filterType,
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: CustomHeader(menuItems: menuItems),
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [AppColors.green, AppColors.yellow],
+              ),
+            ),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(walletByIdProvider(widget.walletId));
+                ref.invalidate(transactionsByWalletProvider(widget.walletId));
+              },
+              color: AppColors.purple,
+              child: CustomScrollView(
+                slivers: [
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: kToolbarHeight + 60),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _AnimatedSection(
+                      delay: 100,
+                      child: WalletSection(wallet: wallet),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _AnimatedSection(
+                      delay: 250,
+                      child: WalletOptionsSection(
+                        wallet: wallet,
+                        currentFilter: _filterType,
+                        onFilterChanged: (filter) {
+                          setState(() => _filterType = filter);
+                          // Filtrado se puede hacer en el cliente o en el provider
+                          // Por ahora simplificamos filtrando la lista recibida
+                        },
+                        onRefreshNeeded: () {
+                           ref.invalidate(walletByIdProvider(widget.walletId));
+                           ref.invalidate(transactionsByWalletProvider(widget.walletId));
+                        },
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  
+                  // Transactions List
+                  transactionsAsync.when(
+                    data: (transactions) {
+                      // Apply filter locally
+                      var filtered = transactions;
+                      if (_filterType != 'all') {
+                        filtered = transactions.where((t) => t.type == _filterType).toList();
+                      }
+                      
+                      return categoriesAsync.when(
+                        data: (categories) => TransactionListSection(
+                          transactions: filtered,
+                          categories: categories,
+                          currency: wallet.currency,
+                        ),
+                         loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+                         error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                      );
+                    },
+                    loading: () => const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                      ),
+                    ),
+                    error: (e, st) => SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                         child: Center(child: Text('Error cargando transacciones: $e', style: const TextStyle(color: Colors.white))),
+                      ),
+                    ),
+                  ),
+                  
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
-    if (mounted) {
-      setState(() => _transactions = transactions);
-    }
   }
 
-  // === ACCIONES DE CARTERA ===
-  Future<void> _toggleArchive() async {
-    if (_wallet == null) return;
-    await _walletService.updateWallet(
-      _wallet!.copyWith(isArchived: !_wallet!.isArchived),
-    );
-    if (mounted) await _loadWallet();
+  Future<void> _toggleArchive(Wallet wallet) async {
+    await ref.read(walletNotifierProvider.notifier).toggleArchive(wallet.id);
   }
 
-  Future<void> _toggleFavorite() async {
-    if (_wallet == null) return;
-    await _walletService.updateWallet(
-      _wallet!.copyWith(isFavorite: !_wallet!.isFavorite),
-    );
-    if (mounted) await _loadWallet();
+  Future<void> _toggleFavorite(Wallet wallet) async {
+    await ref.read(walletNotifierProvider.notifier).toggleFavorite(wallet.id);
   }
 
-  Future<void> _deleteWallet() async {
+  Future<void> _deleteWallet(Wallet wallet) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -105,127 +206,9 @@ class _ViewWalletScreenState extends ConsumerState<ViewWalletScreen> {
     );
 
     if (confirm == true) {
-      await _walletService.deleteWallet(_wallet!.id!);
-      if (mounted) Navigator.of(context).pop();
+      final success = await ref.read(walletNotifierProvider.notifier).deleteWallet(wallet.id);
+      if (success && mounted) Navigator.of(context).pop();
     }
-  }
-
-  Future<void> _loadWallet() async {
-    final wallets = await _walletService.getWallets(includeArchived: true);
-    if (mounted) {
-      setState(() {
-        _wallet = wallets.firstWhere((w) => w.id == widget.walletId);
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final menuItems = _wallet == null
-        ? <PopupMenuEntry<dynamic>>[]
-        : <PopupMenuEntry<dynamic>>[
-            PopupMenuItem(
-              onTap: _toggleArchive,
-              child: Row(
-                children: [
-                  Icon(_wallet!.isArchived ? Icons.unarchive : Icons.archive),
-                  const SizedBox(width: 12),
-                  Text(_wallet!.isArchived ? 'Desarchivar' : 'Archivar'),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              onTap: _toggleFavorite,
-              child: Row(
-                children: [
-                  Icon(
-                    _wallet!.isFavorite ? Icons.star : Icons.star_border,
-                    color: _wallet!.isFavorite ? AppColors.yellow : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    _wallet!.isFavorite
-                        ? 'Quitar de favoritos'
-                        : 'Añadir a favoritos',
-                  ),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              onTap: _deleteWallet,
-              child: const Row(
-                children: [
-                  Icon(Icons.delete_forever, color: AppColors.red),
-                  SizedBox(width: 12),
-                  Text('Eliminar cartera', style: TextStyle(color: AppColors.red)),
-                ],
-              ),
-            ),
-          ];
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: CustomHeader(menuItems: menuItems),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.green, AppColors.yellow],
-          ),
-        ),
-        child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              )
-            : _wallet == null
-                ? const Center(
-                    child: Text(
-                      'Cartera no encontrada',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _loadData,
-                    color: AppColors.purple,
-                    child: CustomScrollView(
-                      slivers: [
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: kToolbarHeight + 60),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _AnimatedSection(
-                            delay: 100,
-                            child: WalletSection(wallet: _wallet!),
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: _AnimatedSection(
-                            delay: 250,
-                            child: WalletOptionsSection(
-                              wallet: _wallet!,
-                              currentFilter: _filterType,
-                              onFilterChanged: (filter) {
-                                setState(() => _filterType = filter);
-                                _loadTransactions();
-                              },
-                              onRefreshNeeded: _loadData,
-                            ),
-                          ),
-                        ),
-                        const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                        TransactionListSection(
-                          transactions: _transactions,
-                          categories: _categories,
-                          currency: _wallet!.currency,
-                        ),
-                        const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                      ],
-                    ),
-                  ),
-      ),
-    );
   }
 }
 

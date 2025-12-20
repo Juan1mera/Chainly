@@ -1,31 +1,37 @@
-// lib/services/stats_service.dart
+import 'package:chainly/core/database/local_database.dart';
+import 'package:chainly/data/repositories/transaction_repository.dart';
+import 'package:chainly/data/repositories/wallet_repository.dart';
 
-import 'package:chainly/core/database/db.dart';
-import 'package:chainly/services/transaction_service.dart';
-import 'package:chainly/services/wallet_service.dart';
+class StatsRepository {
+  final Db _db;
+  final TransactionRepository _transactionRepository;
+  final WalletRepository _walletRepository;
 
-class StatsService {
-  final Db _db = Db();
-  final TransactionService _transactionService = TransactionService();
-  final WalletService _walletService = WalletService();
-
-  // Cache simple para tasas de cambio (para evitar muchas peticiones)
+  // Cache simple for currency conversion
   final Map<String, double> _exchangeCache = {};
   DateTime? _cacheTimestamp;
   static const Duration cacheDuration = Duration(hours: 1);
 
-  Future<List<String>> getUsedCurrencies() async {
+  StatsRepository({
+    required Db db,
+    required TransactionRepository transactionRepository,
+    required WalletRepository walletRepository,
+  })  : _db = db,
+        _transactionRepository = transactionRepository,
+        _walletRepository = walletRepository;
+
+  Future<List<String>> getUsedCurrencies(String userId) async {
     final db = await _db.database;
     final results = await db.rawQuery('''
       SELECT DISTINCT w.currency
       FROM wallets w
-      WHERE w.is_archived = 0
+      WHERE w.is_archived = 0 AND w.user_id = ?
       ORDER BY w.currency
-    ''');
+    ''', [userId]);
     return results.map((row) => row['currency'] as String).toList();
   }
 
-  // Conversión con caché
+  // Conversion with cache
   Future<double> _convert(double amount, String from, String? to) async {
     if (to == null || from == to) return amount;
 
@@ -39,30 +45,31 @@ class StatsService {
     }
 
     try {
-      final converted = await _transactionService.convertCurrency(
+      final converted = await _transactionRepository.convertCurrency(
         amount: amount,
         fromCurrency: from,
         toCurrency: to,
       );
-      // Guardar tasa inversa también
-      final rate = converted / amount;
-      _exchangeCache[cacheKey] = rate;
-      _exchangeCache['$to->$from'] = 1 / rate;
-      _cacheTimestamp = now;
+      if (amount != 0) {
+        final rate = converted / amount;
+        _exchangeCache[cacheKey] = rate;
+        _exchangeCache['$to->$from'] = 1 / rate;
+        _cacheTimestamp = now;
+      }
       return converted;
     } catch (e) {
-      return amount; // fallback si falla internet
+      return amount; 
     }
   }
 
-  // GASTOS POR CATEGORÍA (convertidos a divisa objetivo)
   Future<Map<String, double>> getExpensesByCategory({
+    required String userId,
     DateTime? month,
     String? targetCurrency,
   }) async {
     final targetMonth = month ?? DateTime.now();
     final firstDay = DateTime(targetMonth.year, targetMonth.month, 1);
-    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59,59);
+    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
 
     final db = await _db.database;
 
@@ -75,9 +82,9 @@ class StatsService {
       LEFT JOIN categories c ON t.category_id = c.id
       LEFT JOIN wallets w ON t.wallet_id = w.id
       WHERE t.type = 'expense'
-        AND t.date >= ?
-        AND t.date <= ?
-    ''', [firstDay.toIso8601String(), lastDay.toIso8601String()]);
+        AND t.date >= ? AND t.date <= ?
+        AND w.user_id = ?
+    ''', [firstDay.toIso8601String(), lastDay.toIso8601String(), userId]);
 
     final Map<String, double> totals = {};
 
@@ -95,7 +102,6 @@ class StatsService {
       );
     }
 
-    // Ordenar desc
     final sorted = Map.fromEntries(
       totals.entries.toList()..sort((a, b) => b.value.compareTo(a.value)),
     );
@@ -103,14 +109,14 @@ class StatsService {
     return sorted;
   }
 
-  // INGRESOS POR CATEGORÍA
   Future<Map<String, double>> getIncomesByCategory({
+    required String userId,
     DateTime? month,
     String? targetCurrency,
   }) async {
     final targetMonth = month ?? DateTime.now();
     final firstDay = DateTime(targetMonth.year, targetMonth.month, 1);
-    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23,59,59);
+    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
 
     final db = await _db.database;
 
@@ -123,9 +129,9 @@ class StatsService {
       LEFT JOIN categories c ON t.category_id = c.id
       LEFT JOIN wallets w ON t.wallet_id = w.id
       WHERE t.type = 'income'
-        AND t.date >= ?
-        AND t.date <= ?
-    ''', [firstDay.toIso8601String(), lastDay.toIso8601String()]);
+        AND t.date >= ? AND t.date <= ?
+        AND w.user_id = ?
+    ''', [firstDay.toIso8601String(), lastDay.toIso8601String(), userId]);
 
     final Map<String, double> totals = {};
 
@@ -150,14 +156,14 @@ class StatsService {
     return sorted;
   }
 
-  // TOTALES MENSUALES
   Future<Map<String, double>> getMonthlyTotals({
+    required String userId,
     DateTime? month,
     String? targetCurrency,
   }) async {
     final targetMonth = month ?? DateTime.now();
     final firstDay = DateTime(targetMonth.year, targetMonth.month, 1);
-    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23,59,59);
+    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
 
     final db = await _db.database;
 
@@ -166,7 +172,8 @@ class StatsService {
       FROM transactions t
       LEFT JOIN wallets w ON t.wallet_id = w.id
       WHERE t.date >= ? AND t.date <= ?
-    ''', [firstDay.toIso8601String(), lastDay.toIso8601String()]);
+        AND w.user_id = ?
+    ''', [firstDay.toIso8601String(), lastDay.toIso8601String(), userId]);
 
     double income = 0, expense = 0;
 
@@ -191,11 +198,10 @@ class StatsService {
     };
   }
 
-  // GASTOS POR DIVISA (sin convertir, solo para mostrar distribución)
-  Future<Map<String, double>> getExpensesByCurrency({DateTime? month}) async {
+  Future<Map<String, double>> getExpensesByCurrency({required String userId, DateTime? month}) async {
     final targetMonth = month ?? DateTime.now();
     final firstDay = DateTime(targetMonth.year, targetMonth.month, 1);
-    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23,59,59);
+    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
 
     final db = await _db.database;
     final results = await db.rawQuery('''
@@ -203,10 +209,10 @@ class StatsService {
       FROM transactions t
       LEFT JOIN wallets w ON t.wallet_id = w.id
       WHERE t.type = 'expense'
-        AND t.date >= ?
-        AND t.date <= ?
+        AND t.date >= ? AND t.date <= ?
+        AND w.user_id = ?
       GROUP BY w.currency
-    ''', [firstDay.toIso8601String(), lastDay.toIso8601String()]);
+    ''', [firstDay.toIso8601String(), lastDay.toIso8601String(), userId]);
 
     final Map<String, double> expenses = {};
     for (var row in results) {
@@ -217,9 +223,8 @@ class StatsService {
     return expenses;
   }
 
-  // BALANCE TOTAL POR DIVISA (convertido opcionalmente)
-  Future<Map<String, double>> getTotalByCurrency({String? targetCurrency}) async {
-    final wallets = await _walletService.getWallets(includeArchived: false);
+  Future<Map<String, double>> getTotalByCurrency({required String userId, String? targetCurrency}) async {
+    final wallets = await _walletRepository.getWallets(userId: userId, includeArchived: false);
     final Map<String, double> totals = {};
 
     for (final wallet in wallets) {
@@ -234,7 +239,6 @@ class StatsService {
       );
     }
 
-    // Si hay divisa objetivo, agrupar todo bajo esa divisa
     if (targetCurrency != null) {
       final total = totals.values.fold(0.0, (a, b) => a + b);
       return {targetCurrency: total};
@@ -243,20 +247,20 @@ class StatsService {
     return totals;
   }
 
-  // Comparación de gastos por wallet (convertido a divisa seleccionada)
   Future<Map<String, Map<String, double>>> getWalletExpensesComparison({
+    required String userId,
     String? targetCurrency,
   }) async {
     final now = DateTime.now();
     final currentMonth = DateTime(now.year, now.month, 1);
     final lastMonth = DateTime(now.year, now.month - 1, 1);
 
-    final wallets = await _walletService.getWallets(includeArchived: false);
+    final wallets = await _walletRepository.getWallets(userId: userId, includeArchived: false);
     final comparison = <String, Map<String, double>>{};
 
     for (final wallet in wallets) {
-      final current = await _getWalletExpensesForMonth(wallet.id!, currentMonth, targetCurrency);
-      final previous = await _getWalletExpensesForMonth(wallet.id!, lastMonth, targetCurrency);
+      final current = await _getWalletExpensesForMonth(wallet.id, currentMonth, targetCurrency);
+      final previous = await _getWalletExpensesForMonth(wallet.id, lastMonth, targetCurrency);
 
       final diff = current - previous;
       final pct = previous > 0 ? (diff / previous) * 100 : (current > 0 ? 100.0 : 0.0);
@@ -271,9 +275,9 @@ class StatsService {
     return comparison;
   }
 
-  Future<double> _getWalletExpensesForMonth(int walletId, DateTime month, String? targetCurrency) async {
+  Future<double> _getWalletExpensesForMonth(String walletId, DateTime month, String? targetCurrency) async {
     final firstDay = DateTime(month.year, month.month, 1);
-    final lastDay = DateTime(month.year, month.month + 1, 0, 23,59,59);
+    final lastDay = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
 
     final db = await _db.database;
     final results = await db.rawQuery('''
@@ -293,52 +297,32 @@ class StatsService {
     return await _convert(amount, currency, targetCurrency);
   }
 
-  Future<Map<String, double>> getIncomesByCurrencyRaw({DateTime? month}) async {
-    final targetMonth = month ?? DateTime.now();
-    final firstDay = DateTime(targetMonth.year, targetMonth.month, 1);
-    final lastDay = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
-
-    final db = await _db.database;
-    final results = await db.rawQuery('''
-      SELECT w.currency, SUM(t.amount) AS total
-      FROM transactions t
-      LEFT JOIN wallets w ON t.wallet_id = w.id
-      WHERE t.type = 'income'
-        AND t.date >= ? AND t.date <= ?
-      GROUP BY w.currency
-    ''', [firstDay.toIso8601String(), lastDay.toIso8601String()]);
-
-    final Map<String, double> incomes = {};
-    for (var row in results) {
-      final currency = row['currency'] as String? ?? 'USD';
-      final total = (row['total'] as num?)?.toDouble() ?? 0.0;
-      incomes[currency] = total;
-    }
-    return incomes;
-  } 
-
-
-  // Tendencia de gastos (convertida)
-  Future<Map<String, double>> getExpensesTrend({String? targetCurrency}) async {
+  Future<Map<String, double>> getExpensesTrend({required String userId, String? targetCurrency}) async {
     final now = DateTime.now();
     final trend = <String, double>{};
 
     for (int i = 5; i >= 0; i--) {
       final monthDate = DateTime(now.year, now.month - i, 1);
       final firstDay = DateTime(monthDate.year, monthDate.month, 1);
-      final lastDay = DateTime(monthDate.year, monthDate.month + 1, 0, 23,59,59);
+      final lastDay = DateTime(monthDate.year, monthDate.month + 1, 0, 23, 59, 59);
 
-      final transactions = await _transactionService.getAllTransactions(
-        type: 'expense',
-        from: firstDay,
-        to: lastDay,
-      );
+      // Using raw query for efficiency
+       final db = await _db.database;
+      final results = await db.rawQuery('''
+        SELECT SUM(t.amount) as total, w.currency
+        FROM transactions t
+        JOIN wallets w ON t.wallet_id = w.id
+        WHERE t.type = 'expense'
+          AND t.date >= ? AND t.date <= ?
+          AND w.user_id = ?
+        GROUP BY w.currency
+      ''', [firstDay.toIso8601String(), lastDay.toIso8601String(), userId]);
 
       double total = 0.0;
-      for (final t in transactions) {
-        final wallet = await _walletService.getWalletById(t.walletId); 
-        final currency = wallet?.currency ?? 'USD';
-        total += await _convert(t.amount, currency, targetCurrency);
+      for (final row in results) {
+        final amount = (row['total'] as num).toDouble();
+        final currency = row['currency'] as String? ?? 'USD';
+        total += await _convert(amount, currency, targetCurrency);
       }
 
       trend[_getMonthName(monthDate.month)] = total;

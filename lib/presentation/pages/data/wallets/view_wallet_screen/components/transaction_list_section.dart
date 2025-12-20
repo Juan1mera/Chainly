@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/fonts.dart';
-import 'package:chainly/models/transaction_model.dart';
-import 'package:chainly/models/category_model.dart';
+import 'package:chainly/data/models/transaction_model.dart';
+import 'package:chainly/data/models/category_model.dart';
 import 'package:chainly/presentation/widgets/common/transaction_card_simple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -123,10 +123,18 @@ class TransactionListSection extends StatelessWidget {
                   ),
                 ),
               ),
-              ...dayTransactions.map((t) {
+                  ...dayTransactions.map((t) {
                 final category =
                     categories.firstWhereOrNull((c) => c.id == t.categoryId) ??
-                    Category(name: 'Sin categoría', icon: 'question_mark', userId: '${_user?.id}');
+                    Category(
+                      id: 'temp', 
+                      name: 'Sin categoría', 
+                      icon: 'question_mark', 
+                      userId: '${_user?.id}',
+                      type: 'expense',
+                      createdAt: DateTime.now(),
+                      updatedAt: DateTime.now(),
+                    );
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,

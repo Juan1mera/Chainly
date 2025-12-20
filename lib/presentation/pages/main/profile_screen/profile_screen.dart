@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
-import 'package:chainly/services/auth_service.dart';
+import 'package:chainly/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {

@@ -4,15 +4,15 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/fonts.dart';
 import 'package:chainly/core/utils/number_format.dart';
-import 'package:chainly/models/wallet_model.dart';
+import 'package:chainly/data/models/wallet_model.dart';
 import 'package:chainly/presentation/widgets/common/wallet_mini_card.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
 import 'package:chainly/presentation/widgets/ui/custom_header.dart';
 import 'package:chainly/presentation/widgets/ui/custom_number_field.dart';
 import 'package:chainly/presentation/widgets/ui/custom_select.dart';
 import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
-import 'package:chainly/providers/wallet_provider.dart';
-import 'package:chainly/services/transaction_service.dart';
+import 'package:chainly/domain/providers/wallet_provider.dart';
+import 'package:chainly/domain/providers/transaction_provider.dart';
 
 class CreateTransactionConvertScreen extends ConsumerStatefulWidget {
   final Wallet? initialFromWallet;
@@ -26,7 +26,6 @@ class CreateTransactionConvertScreen extends ConsumerStatefulWidget {
 
 class _CreateTransactionConvertScreenState
     extends ConsumerState<CreateTransactionConvertScreen> {
-  final TransactionService _transactionService = TransactionService();
   final TextEditingController _noteController = TextEditingController();
 
   Wallet? _fromWallet;
@@ -39,24 +38,14 @@ class _CreateTransactionConvertScreenState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Using ref.watch here might trigger too many rebuilds, usually better to do in build
+    // but we need to initialize _fromWallet once.
+  }
 
-    // Solo se ejecuta una vez cuando las wallets ya están cargadas
-    if (!_hasInitialized && widget.initialFromWallet != null) {
-      final wallets = ref.read(walletsProvider).value;
-      if (wallets != null && wallets.isNotEmpty) {
-        final foundWallet = wallets.firstWhere(
-          (w) => w.id == widget.initialFromWallet!.id,
-          orElse: () => widget.initialFromWallet!,
-        );
-
-        if (mounted) {
-          setState(() {
-            _fromWallet = foundWallet;
-            _hasInitialized = true;
-          });
-        }
-      }
-    }
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
   }
 
   Future<void> _convertAndShow() async {
@@ -65,26 +54,24 @@ class _CreateTransactionConvertScreenState
     setState(() => _isConverting = true);
     try {
       if (_fromWallet!.currency == _toWallet!.currency) {
-        _convertedAmount = _amount;
+        setState(() => _convertedAmount = _amount);
       } else {
-        _convertedAmount = await _transactionService.convertCurrency(
+        // Use repository directly via provider for conversion (read-only op)
+        final repo = ref.read(transactionRepositoryProvider);
+        final converted = await repo.convertCurrency(
           amount: _amount,
           fromCurrency: _fromWallet!.currency,
           toCurrency: _toWallet!.currency,
         );
+        setState(() => _convertedAmount = converted);
       }
     } catch (e) {
-      _convertedAmount = _amount;
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transferencia realizada con éxito')),
-        );
-        ref.read(walletsProvider.notifier).refreshAfterTransaction();
-
-        Navigator.pop(context, true);
+         setState(() => _convertedAmount = _amount); // Fallback
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error conversión: $e')));
       }
     } finally {
-      setState(() => _isConverting = false);
+      if (mounted) setState(() => _isConverting = false);
     }
   }
 
@@ -96,53 +83,41 @@ class _CreateTransactionConvertScreenState
       return;
     }
     if (_amount <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Ingresa un monto válido')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingresa un monto válido')));
       return;
     }
     if (_fromWallet!.balance < _amount) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Saldo insuficiente')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saldo insuficiente')));
       return;
     }
 
     try {
-      await _transactionService.transferBetweenWallets(
-        fromWalletId: _fromWallet!.id!,
-        toWalletId: _toWallet!.id!,
-        fromAmount: _amount,
-        note: _noteController.text.trim().isEmpty
-            ? null
-            : _noteController.text.trim(),
+      final notifier = ref.read(transactionNotifierProvider.notifier);
+      await notifier.transfer(
+        fromWalletId: _fromWallet!.id,
+        toWalletId: _toWallet!.id,
+        amount: _amount,
+        note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+        fromCurrency: _fromWallet!.currency,
+        toCurrency: _toWallet!.currency,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Transferencia realizada con éxito')),
         );
-        ref.read(walletsProvider.notifier).refreshAfterTransaction();
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
 
   @override
-  void dispose() {
-    _noteController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final walletsAsync = ref.watch(walletsProvider);
+    final walletsAsync = ref.watch(walletsProvider(const WalletFilters(includeArchived: false)));
 
     return Scaffold(
       body: walletsAsync.when(
@@ -159,15 +134,18 @@ class _CreateTransactionConvertScreenState
             );
           }
 
-          // Inicializar desde wallet si aún no se hizo y ya tenemos datos
+          // Initial setup
           if (!_hasInitialized && widget.initialFromWallet != null) {
             final found = activeWallets.firstWhere(
               (w) => w.id == widget.initialFromWallet!.id,
               orElse: () => widget.initialFromWallet!,
             );
-            if (_fromWallet == null && found.id != null) {
-              _fromWallet = found;
-              _hasInitialized = true;
+            // Ensure we only set it if we haven't selected yet (or it matches initial intent)
+            // and checking if found exists in current list (it should based on firstWhere orElse logic, careful if not in list)
+             
+            if (_fromWallet == null) {
+               _fromWallet = found;
+               _hasInitialized = true;
             }
           }
 
@@ -215,7 +193,7 @@ class _CreateTransactionConvertScreenState
                   ),
 
                   const SizedBox(height: 10),
-                  Icon(
+                  const Icon(
                     Bootstrap.arrow_down_up,
                     size: 28,
                     color: AppColors.black,
@@ -300,7 +278,7 @@ class _CreateTransactionConvertScreenState
                     padding: const EdgeInsets.all(12.0),
                     child: CustomButton(
                       text: "Convert",
-                      leftIcon: Icon(Bootstrap.arrow_down_up),
+                      leftIcon: const Icon(Bootstrap.arrow_down_up),
                       onPressed:
                           (_fromWallet == null ||
                               _toWallet == null ||
