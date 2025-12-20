@@ -1,5 +1,6 @@
 import 'package:chainly/core/constants/colors.dart';
 import 'package:chainly/core/constants/fonts.dart';
+import 'package:chainly/presentation/pages/auth/login_screen.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
 import 'package:chainly/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -115,7 +116,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       // Verificamos mounted antes de navegar
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,7 +227,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _auth.deleteCurrentUserAccount();
 
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
