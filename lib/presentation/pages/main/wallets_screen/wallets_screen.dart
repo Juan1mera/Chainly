@@ -28,9 +28,12 @@ class _WalletsScreenState extends ConsumerState<WalletsScreen> {
   String _selectedType = 'cash';
   String _selectedColor = AppColors.walletColors[0];
   
+  final ValueNotifier<bool> _isCreatingWallet = ValueNotifier(false);
+  
   @override
   void dispose() {
     _nameController.dispose();
+    _isCreatingWallet.dispose();
     super.dispose();
   }
 
@@ -96,11 +99,9 @@ class _WalletsScreenState extends ConsumerState<WalletsScreen> {
           text: 'Cancel',
           onPressed: () => Navigator.pop(context),
         ),
-        Consumer(
-          builder: (context, ref, child) {
-            final notifierState = ref.watch(walletNotifierProvider);
-            final isLoading = notifierState.isLoading;
-
+        ValueListenableBuilder<bool>(
+          valueListenable: _isCreatingWallet,
+          builder: (context, isLoading, child) {
             return CustomButton(
               text: 'Create',
               onPressed: isLoading ? null : _createWallet,
@@ -195,6 +196,8 @@ class _WalletsScreenState extends ConsumerState<WalletsScreen> {
       return;
     }
 
+    _isCreatingWallet.value = true;
+
     final notifier = ref.read(walletNotifierProvider.notifier);
 
     try {
@@ -214,11 +217,18 @@ class _WalletsScreenState extends ConsumerState<WalletsScreen> {
       }
     } catch (e) {
       if (mounted) {
+        _isCreatingWallet.value = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );
       }
     }
+    // No need to set false if popped, but safe to do so or leave it (it's disposed when screen is disposed, but modal pop keeps screen alive).
+    // Actually, if success -> pop. If fail -> stay and allow retry.
+    // If success, we pop, so _isCreatingWallet state doesn't matter for this modal instance anymore.
+    // But better reset it if we reuse it? _showCreateWalletModal resets values but not the Notifier?
+    // Added reset below.
+    if (mounted) _isCreatingWallet.value = false; 
   }
 
   @override

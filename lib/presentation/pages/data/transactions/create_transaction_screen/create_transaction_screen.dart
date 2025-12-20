@@ -73,6 +73,8 @@ class _CreateTransactionScreenState
     // No need to setState here if called during build or if build will happen anyway
   }
 
+  bool _isLoading = false;
+
   Future<void> _createTransaction() async {
     if (_amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,6 +96,8 @@ class _CreateTransactionScreenState
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
       // Find category ID from name
       final categories = ref.read(categoriesProvider).value ?? [];
@@ -101,14 +105,6 @@ class _CreateTransactionScreenState
           (c) => c.name == _selectedCategoryName,
           orElse: () => categories.first // Should handle case where it doesn't exist?
       );
-      
-      // If category doesn't exist in loaded list (newly created temp?), we might need to create it for real
-      // But _buildCategorySelector handles creation via notifier, so it should be in the list after refresh.
-      // However, for safety, let's ensure we have a category.
-      
-      // Simplify: we assume category exists or was just created.
-      // If we allowed "create on the fly" without ID, we'd need to handle that here.
-      // In _buildCategorySelector we call createCategory which returns the object with ID.
       
       final notifier = ref.read(transactionNotifierProvider.notifier);
       
@@ -129,6 +125,7 @@ class _CreateTransactionScreenState
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
@@ -234,7 +231,8 @@ class _CreateTransactionScreenState
 
                         CustomButton(
                           text: 'Guardar transacción',
-                          onPressed: _createTransaction,
+                          onPressed: _isLoading ? null : _createTransaction,
+                          isLoading: _isLoading,
                         ),
                       ],
                     ),
