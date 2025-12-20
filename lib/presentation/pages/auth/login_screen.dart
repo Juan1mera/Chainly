@@ -113,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
             
                 // === HEADER CON LOGO ===
                 AppSvgs.chainlyLogoSvg(),
-                
                 const Text(
                   '¡Hola!',
                   style: TextStyle(
