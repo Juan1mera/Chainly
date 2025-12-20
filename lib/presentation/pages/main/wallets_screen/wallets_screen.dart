@@ -247,7 +247,6 @@ class _WalletsScreenState extends ConsumerState<WalletsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Wallets'),
         actions: [
           // Indicador de conectividad
           Consumer(

@@ -106,40 +106,43 @@ class TransactionRepository {
   }
 
   Future<Transaction> createTransaction(Transaction transaction) async {
+    // 1. Optimistic Local Update
     await _localDb.insert('transactions', transaction.toLocal());
-
-    // Actualizar balance de wallet localmente
     await _updateLocalWalletBalance(transaction.walletId, transaction.amount, transaction.type);
 
+    // 2. Background Sync (Fire & Forget)
+    unawaited(_syncCreateTransaction(transaction));
+
+    // 3. Return immediately
+    return transaction;
+  }
+
+  Future<void> _syncCreateTransaction(Transaction transaction) async {
     final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      await _queuePendingOperation(
+          'insert', 'transactions', transaction.id, transaction.toSupabase());
+      return;
+    }
 
-    if (isOnline) {
-      try {
-        await _supabase.from('transactions').insert(transaction.toSupabase());
-        
-        // Update remote wallet balance
-        await _updateRemoteWalletBalance(transaction.walletId, transaction.amount, transaction.type);
+    try {
+      await _supabase.from('transactions').insert(transaction.toSupabase());
+      
+      // Update remote wallet balance
+      await _updateRemoteWalletBalance(transaction.walletId, transaction.amount, transaction.type);
 
-        final syncedTransaction = transaction.markAsSynced();
-        await _localDb.update(
-          'transactions',
-          syncedTransaction.toLocal(),
-          where: 'id = ?',
-          whereArgs: [transaction.id],
-        );
-
-        return syncedTransaction;
-      } catch (e) {
-        debugPrint('Error creating transaction in Supabase: $e');
-        await _queuePendingOperation(
-            'insert', 'transactions', transaction.id, transaction.toSupabase());
-      }
-    } else {
+      final syncedTransaction = transaction.markAsSynced();
+      await _localDb.update(
+        'transactions',
+        syncedTransaction.toLocal(),
+        where: 'id = ?',
+        whereArgs: [transaction.id],
+      );
+    } catch (e) {
+      debugPrint('Error creating transaction in Supabase: $e');
       await _queuePendingOperation(
           'insert', 'transactions', transaction.id, transaction.toSupabase());
     }
-
-    return transaction;
   }
 
   Future<Transaction> updateTransaction(Transaction transaction) async {
@@ -153,35 +156,38 @@ class TransactionRepository {
       whereArgs: [transaction.id],
     );
 
-    final isOnline = await _checkConnectivity();
-
-    if (isOnline) {
-      try {
-        await _supabase
-            .from('transactions')
-            .update(updatedTransaction.toSupabase())
-            .eq('id', transaction.id);
-
-        final syncedTransaction = updatedTransaction.markAsSynced();
-        await _localDb.update(
-          'transactions',
-          syncedTransaction.toLocal(),
-          where: 'id = ?',
-          whereArgs: [transaction.id],
-        );
-
-        return syncedTransaction;
-      } catch (e) {
-        debugPrint('Error updating transaction in Supabase: $e');
-        await _queuePendingOperation(
-            'update', 'transactions', transaction.id, updatedTransaction.toSupabase());
-      }
-    } else {
-      await _queuePendingOperation(
-          'update', 'transactions', transaction.id, updatedTransaction.toSupabase());
-    }
+    // Background Sync
+    unawaited(_syncUpdateTransaction(transaction, updatedTransaction));
 
     return updatedTransaction;
+  }
+
+  Future<void> _syncUpdateTransaction(Transaction original, Transaction updated) async {
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      await _queuePendingOperation(
+          'update', 'transactions', original.id, updated.toSupabase());
+      return;
+    }
+
+    try {
+      await _supabase
+          .from('transactions')
+          .update(updated.toSupabase())
+          .eq('id', original.id);
+
+      final syncedTransaction = updated.markAsSynced();
+      await _localDb.update(
+        'transactions',
+        syncedTransaction.toLocal(),
+        where: 'id = ?',
+        whereArgs: [original.id],
+      );
+    } catch (e) {
+      debugPrint('Error updating transaction in Supabase: $e');
+      await _queuePendingOperation(
+          'update', 'transactions', original.id, updated.toSupabase());
+    }
   }
 
   Future<bool> deleteTransaction(String id) async {
@@ -197,28 +203,34 @@ class TransactionRepository {
 
     await _localDb.delete('transactions', where: 'id = ?', whereArgs: [id]);
 
-    final isOnline = await _checkConnectivity();
-
-    if (isOnline) {
-      try {
-        await _supabase.from('transactions').delete().eq('id', id);
-        
-        // Revert remote balance
-        // We need the txn details which we fetched earlier locally (txn var)
-        if (txn != null) {
-          await _updateRemoteWalletBalance(txn.walletId, -txn.amount, txn.type);
-        }
-        
-        return true;
-      } catch (e) {
-        debugPrint('Error deleting transaction from Supabase: $e');
-        await _queuePendingOperation('delete', 'transactions', id, {});
-      }
+    if (txn != null) {
+      unawaited(_syncDeleteTransaction(id, txn));
     } else {
-      await _queuePendingOperation('delete', 'transactions', id, {});
+       // Should not happen if local db is consistent, but safe guard
+       unawaited(_syncDeleteTransaction(id, null));
     }
 
     return true;
+  }
+
+  Future<void> _syncDeleteTransaction(String id, Transaction? deletedTxn) async {
+    final isOnline = await _checkConnectivity();
+    if (!isOnline) {
+      await _queuePendingOperation('delete', 'transactions', id, {});
+      return;
+    }
+
+    try {
+      await _supabase.from('transactions').delete().eq('id', id);
+      
+      // Revert remote balance
+      if (deletedTxn != null) {
+        await _updateRemoteWalletBalance(deletedTxn.walletId, -deletedTxn.amount, deletedTxn.type);
+      }
+    } catch (e) {
+      debugPrint('Error deleting transaction from Supabase: $e');
+      await _queuePendingOperation('delete', 'transactions', id, {});
+    }
   }
   
   Future<void> syncPendingOperations() async {

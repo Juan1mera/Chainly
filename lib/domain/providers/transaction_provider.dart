@@ -47,7 +47,7 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
     String? note,
     DateTime? date,
   }) async {
-    state = const AsyncValue.loading();
+    // Optimistic update: No loading state needed
     try {
       final userId = _ref.read(currentUserIdProvider);
       if (userId == null) throw Exception('User not logged in');
@@ -64,12 +64,10 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
 
       final created = await _repository.createTransaction(transaction);
       
-      state = const AsyncValue.data(null);
-      
       // Invalidar providers relevantes
       _ref.invalidate(transactionsByWalletProvider(walletId));
-      _ref.invalidate(walletsProvider); // Para actualizar balance
-      _ref.invalidate(walletByIdProvider(walletId)); // Para actualizar balance
+      _ref.invalidate(walletsProvider); 
+      _ref.invalidate(walletByIdProvider(walletId)); 
 
       return created;
     } catch (e, st) {
@@ -79,11 +77,9 @@ class TransactionNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<bool> deleteTransaction(String id, String walletId) async {
-    state = const AsyncValue.loading();
+    // Optimistic: No loading state
     try {
       final success = await _repository.deleteTransaction(id);
-      
-      state = const AsyncValue.data(null);
       
       if (success) {
          _ref.invalidate(transactionsByWalletProvider(walletId));
