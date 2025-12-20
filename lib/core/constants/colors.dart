@@ -26,6 +26,11 @@ class AppColors {
 
 
 
+  static const List<Color> bgGradient1 = [blue, yellow];
+  static const List<Color> bgGradient2 = [blue, yellow];
+
+
+
 
 
   static final List<String> walletColors = [
