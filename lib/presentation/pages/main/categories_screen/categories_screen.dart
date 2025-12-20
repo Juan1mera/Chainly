@@ -1,4 +1,5 @@
 
+import 'package:chainly/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chainly/core/constants/colors.dart';
@@ -7,7 +8,6 @@ import 'package:chainly/presentation/pages/main/categories_screen/components/cat
 import 'package:chainly/presentation/pages/main/categories_screen/components/category_edit_dialog.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
 import 'package:chainly/services/category_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});
@@ -20,7 +20,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   final CategoryService _categoryService = CategoryService();
   late Future<List<Category>> _categoriesFuture;
 
-  User? get _user => Supabase.instance.client.auth.currentUser;
+  final AuthService _authService = AuthService();
+  Map<String, dynamic>? get _userData => _authService.currentUserData;
+  String? get _displayId => _userData?['id'];
 
 
   @override
@@ -51,7 +53,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     if (result == null || result['name']?.trim().isEmpty != false) return;
 
     final name = result['name']!.trim();
-    final iconCode = result['iconCode']; // ← ¡Aquí estaba el error! Usamos iconCode
+    final iconCode = result['iconCode'];
 
     try {
       if (isEdit) {
@@ -60,14 +62,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
           name: name,
           icon: iconCode, 
           monthlyBudget: category.monthlyBudget,
-          userId: '${_user?.id}'
+          userId: _displayId
         ));
       } else {
         await _categoryService.createCategory(Category(
           name: name,
           icon: iconCode, 
           monthlyBudget: 0.0,
-          userId: '${_user?.id}'
+          userId: _displayId
         ));
       }
 

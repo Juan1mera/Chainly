@@ -61,7 +61,8 @@ class Db {
         name TEXT NOT NULL UNIQUE,
         monthly_budget REAL DEFAULT 0.0,
         icon TEXT,
-        color TEXT
+        color TEXT,
+        UNIQUE(user_id, name)
       )
     ''');
 
@@ -84,6 +85,7 @@ class Db {
     await db.insert('categories', {
       'name': 'Sin categoría',
       'monthly_budget': 0.0,
+      'user_id' : null
     });
   }
 

@@ -17,7 +17,7 @@ class TransactionService {
 
   // CREAR
   Future<int> createTransaction(Transaction transaction) async {
-    final userEmail = _authService.currentUserEmail;
+    final userEmail = _authService.currentUserData?['email'];
     if (userEmail == null) throw Exception('User not authenticated');
 
     final db = await _db.database;

@@ -1,8 +1,13 @@
 import 'package:chainly/core/database/db.dart';
 import 'package:chainly/models/category_model.dart';
+import 'package:chainly/services/auth_service.dart';
 
 class CategoryService {
   final Db _db = Db();
+  final AuthService _authService = AuthService();
+  Map<String, dynamic>? get _userData => _authService.currentUserData;
+  String? get _displayId => _userData?['id'];
+
 
   Future<int> createCategory(Category category) async {
     final db = await _db.database;
@@ -10,9 +15,19 @@ class CategoryService {
   }
 
   Future<List<Category>> getCategories() async {
+    final userId = _displayId;
+    if (userId == null) return [];
+
     final db = await _db.database;
-    final maps = await db.query('categories', orderBy: 'name ASC');
-    return maps.map(Category.fromMap).toList();
+    final List<Map<String, dynamic>> maps = await db.query(
+      'categories',
+      // El null es para obtener 'sin categoria' que no tiene user id
+      where: 'user_id = ? OR user_id IS NULL', 
+      whereArgs: [userId],
+      orderBy: 'name ASC',
+    );
+
+    return maps.map((map) => Category.fromMap(map)).toList();
   }
 
   Future<bool> updateCategory(Category category) async {

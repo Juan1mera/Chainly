@@ -1,7 +1,7 @@
 
 class Category {
   final int? id;
-  final String userId;
+  final String? userId;
   final String name;
   final double monthlyBudget;
   final String? icon;
@@ -9,7 +9,7 @@ class Category {
 
   const Category({
     this.id,
-    required this.userId,
+    this.userId,
     required this.name,
     this.monthlyBudget = 0.0,
     this.icon,
@@ -19,7 +19,7 @@ class Category {
   factory Category.fromMap(Map<String, dynamic> map) {
     return Category(
       id: map['id'] as int?,
-      userId: map['user_id'] as String,
+      userId: map['user_id'] as String?,
       name: map['name'] as String,
       monthlyBudget: (map['monthly_budget'] as num?)?.toDouble() ?? 0.0,
       icon: map['icon'] as String?,

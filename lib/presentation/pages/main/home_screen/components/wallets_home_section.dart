@@ -277,7 +277,7 @@ class _WalletsHomeSectionState extends State<WalletsHomeSection>
                       ),
                     ),
                     Text(
-                      '${_authService.currentUserName}',
+                      '${_authService.currentUserData?['name']}',
                       style: TextStyle(
                           color: AppColors.white,
                           fontFamily: AppFonts.clashDisplay,

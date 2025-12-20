@@ -1,3 +1,4 @@
+import 'package:chainly/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chainly/core/constants/colors.dart';
@@ -12,7 +13,6 @@ import 'package:chainly/presentation/widgets/ui/custom_text_field.dart';
 import 'package:chainly/presentation/widgets/ui/custom_number_field.dart';
 import 'package:chainly/presentation/widgets/ui/custom_select.dart';
 import 'package:chainly/providers/wallet_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class WalletsScreen extends ConsumerStatefulWidget {
   const WalletsScreen({super.key});
@@ -23,7 +23,7 @@ class WalletsScreen extends ConsumerStatefulWidget {
 
 class _WalletsScreenState extends ConsumerState<WalletsScreen> {
   final TextEditingController _nameController = TextEditingController();
-  User? get _user => Supabase.instance.client.auth.currentUser;
+  final AuthService _authService = AuthService();
 
 
   String _selectedCurrency = 'USD';
@@ -191,7 +191,7 @@ Future<void> _showCreateWalletModal() async {
     setState(() => _isLoading = true);
 
     final wallet = Wallet(
-      userId: '${_user?.id}', 
+      userId: _authService.currentUserData?['id'], 
       name: _nameController.text.trim(),
       currency: _selectedCurrency,
       balance: _initialBalance,
