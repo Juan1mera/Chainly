@@ -110,10 +110,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              const SizedBox(height: 50),
               SizedBox(
-                width: 190,
-                height: 190,
+                width: 100,
+                height: 100,
                 child: SvgPicture.asset(
                   'assets/Icon.svg',
                   fit: BoxFit.contain,
@@ -163,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
 
-              const SizedBox(height: 66),
+              const SizedBox(height: 16),
 
               // === FORMULARIO ===
               CustomTextField(

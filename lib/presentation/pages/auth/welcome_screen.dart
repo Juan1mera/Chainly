@@ -1,8 +1,6 @@
-// lib/welcome_screen.dart
-import 'package:chainly/core/constants/colors.dart';
+import 'package:chainly/core/constants/svgs.dart';
 import 'package:flutter/material.dart';
 import 'package:chainly/presentation/widgets/ui/custom_button.dart';
-import 'package:flutter_svg/svg.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
@@ -18,17 +16,7 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: 90,
-                child: SvgPicture.asset(
-                  'assets/IconLabel.svg',
-                  fit: BoxFit.contain,
-                  colorFilter: const ColorFilter.mode(
-                    AppColors.black,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ),
+              AppSvgs.chainlyLabelSvg(width: 300),
               const SizedBox(height: 150,),
               CustomButton(
                 text: 'Login', 

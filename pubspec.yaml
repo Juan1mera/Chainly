@@ -80,13 +80,11 @@ flutter:
   assets:
       - .env
 
+      - assets/chainly_logo.svg
+      - assets/chainly_label.svg
+
       - assets/Icon.svg
       - assets/IconLabel.svg
-      - assets/animalsCircle/
-
-      - assets/animals_login/cat.svg
-      - assets/animals_login/cow.svg
-      - assets/animals_login/dog.svg
 
   fonts:
     - family: ClashDisplay

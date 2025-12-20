@@ -113,8 +113,8 @@ class _LoginScreenState extends State<LoginScreen> {
             
                 // === HEADER CON LOGO ===
                 SizedBox(
-                  width: 190,
-                  height: 190,
+                  width: 100,
+                  height: 100,
                   child: SvgPicture.asset(
                     'assets/Icon.svg',
                     fit: BoxFit.contain,
